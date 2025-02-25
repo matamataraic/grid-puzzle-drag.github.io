@@ -687,8 +687,8 @@ export const GridPuzzle = () => {
               <DialogDescription className="text-left space-y-2">
                 <p>eco friendly pločice 15x15cm s 3d uzorkom izrađene od smjese recikliranog papira</p>
                 <p>***svaka*** pločica je handmade i zbog toga jedinstvena i drukčija od prethodne</p>
-                <p>ljepilo + podloga za lijepljenje pločica se ne isporučuju</p>
-                <p>prijedlog: ljepilo za papir + ljepenka/hamer papir</p>
+                <p>odabir običnih pločica - lijepljenje na podlogu (podloga se ne isporučuje; prijedlog: hamer papir, ljepenka, slikarsko platno</p>
+                <p>ili pločica s čičak trakom - međusobno povezivanje i mogućnost naknadne izmjene / dopune kompozicije po želji</p>
                 <p>•••      </p>
                 <p>S0 prazna pločica</p>
                 <p>S1 pločica s ravnim linijama</p>
@@ -702,8 +702,6 @@ export const GridPuzzle = () => {
                 <p>• ukloni pločicu dvostrukim klikom</p>
                 <p>• "clear" zadrži raspored polja, pobriši pločice</p>
                 <p>• "restart" kreni od nule</p>
-                <p>•••      </p>
-                <p> ***dolje*** </p>
                 <p> -OKO- za pregled kompozicije</p>
                 <p>• "order" pokreni narudžbu</p>
                 <p> -DISKETA- za pohranu trenutne kompozicije</p>
