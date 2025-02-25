@@ -658,7 +658,7 @@ export const GridPuzzle = () => {
                 <span className="text-sm">{imageCounts.S1}</span>
                 <span className="text-sm">x 12€</span>
               </div>
-              <span className="text-sm">{(imageCounts.S1 * 15)}€</span>
+              <span className="text-sm">{(imageCounts.S1 * 12)}€</span>
             </div>
             <div className="flex flex-col items-center">
               <div className="flex gap-2">
@@ -666,7 +666,7 @@ export const GridPuzzle = () => {
                 <span className="text-sm">{imageCounts.S2}</span>
                 <span className="text-sm">x 12€</span>
               </div>
-              <span className="text-sm">{(imageCounts.S2 * 15)}€</span>
+              <span className="text-sm">{(imageCounts.S2 * 12)}€</span>
             </div>
           </div>
 
