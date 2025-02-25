@@ -405,9 +405,9 @@ export const GridPuzzle = () => {
     }
 
     const subject = getOrderTitle();
-    const totalS0 = imageCounts.S0 * 5;
-    const totalS1 = imageCounts.S1 * 10;
-    const totalS2 = imageCounts.S2 * 10;
+    const totalS0 = imageCounts.S0 * 7;
+    const totalS1 = imageCounts.S1 * 12;
+    const totalS2 = imageCounts.S2 * 12;
     const magneticCost = orderType === "magnetic" ? (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3 : 0;
     const grandTotal = totalS0 + totalS1 + totalS2 + magneticCost;
     
@@ -420,9 +420,9 @@ export const GridPuzzle = () => {
     E-mail: ${orderForm.email}
 
     Narudžba:
-    S0: ${imageCounts.S0} x 5€ = ${totalS0}€
-    S1: ${imageCounts.S1} x 10€ = ${totalS1}€
-    S2: ${imageCounts.S2} x 10€ = ${totalS2}€
+    S0: ${imageCounts.S0} x 7€ = ${totalS0}€
+    S1: ${imageCounts.S1} x 12€ = ${totalS1}€
+    S2: ${imageCounts.S2} x 12€ = ${totalS2}€
     ${orderType === "magnetic" ? `čičak dodatak: ${magneticCost}€` : ''}
 
     Dimenzije: ${horizontal && vertical ? `${parseInt(horizontal) * 15} x ${parseInt(vertical) * 15} cm` : ''}
@@ -648,15 +648,15 @@ export const GridPuzzle = () => {
               <div className="flex gap-2">
                 <span className="text-sm font-medium">S0:</span>
                 <span className="text-sm">{imageCounts.S0}</span>
-                <span className="text-sm">x 5€</span>
+                <span className="text-sm">x 7€</span>
               </div>
-              <span className="text-sm">{(imageCounts.S0 * 8)}€</span>
+              <span className="text-sm">{(imageCounts.S0 * 7)}€</span>
             </div>
             <div className="flex flex-col items-center">
               <div className="flex gap-2">
                 <span className="text-sm font-medium">S1:</span>
                 <span className="text-sm">{imageCounts.S1}</span>
-                <span className="text-sm">x 10€</span>
+                <span className="text-sm">x 12€</span>
               </div>
               <span className="text-sm">{(imageCounts.S1 * 15)}€</span>
             </div>
@@ -664,7 +664,7 @@ export const GridPuzzle = () => {
               <div className="flex gap-2">
                 <span className="text-sm font-medium">S2:</span>
                 <span className="text-sm">{imageCounts.S2}</span>
-                <span className="text-sm">x 10€</span>
+                <span className="text-sm">x 12€</span>
               </div>
               <span className="text-sm">{(imageCounts.S2 * 15)}€</span>
             </div>
@@ -675,7 +675,7 @@ export const GridPuzzle = () => {
               {horizontal && vertical && `${parseInt(horizontal) * 15} x ${parseInt(vertical) * 15} cm`}
             </span>
             <span className="font-bold">
-              {((imageCounts.S0 * 5) + (imageCounts.S1 * 10) + (imageCounts.S2 * 10)).toFixed(2)}€
+              {((imageCounts.S0 * 7) + (imageCounts.S1 * 12) + (imageCounts.S2 * 12)).toFixed(2)}€
             </span>
           </div>
         </div>
@@ -687,7 +687,7 @@ export const GridPuzzle = () => {
               <DialogDescription className="text-left space-y-2">
                 <p>eco friendly pločice 15x15cm s 3d uzorkom izrađene od smjese recikliranog papira</p>
                 <p>***svaka*** pločica je handmade i zbog toga jedinstvena i drukčija od prethodne</p>
-                <p>odabir običnih pločica - lijepljenje na podlogu (podloga se ne isporučuje; prijedlog: hamer papir, ljepenka, slikarsko platno</p>
+                <p>odabir običnih pločica - lijepljenje na podlogu (podloga se ne isporučuje; prijedlog: hamer papir, ljepenka, slikarsko platno)</p>
                 <p>ili pločica s čičak trakom - međusobno povezivanje i mogućnost naknadne izmjene / dopune kompozicije po želji</p>
                 <p>•••      </p>
                 <p>S0 prazna pločica</p>
@@ -702,9 +702,9 @@ export const GridPuzzle = () => {
                 <p>• ukloni pločicu dvostrukim klikom</p>
                 <p>• "clear" zadrži raspored polja, pobriši pločice</p>
                 <p>• "restart" kreni od nule</p>
-                <p> -OKO- za pregled kompozicije</p>
+                <p>• -OKO- za pregled kompozicije</p>
                 <p>• "order" pokreni narudžbu</p>
-                <p> -DISKETA- za pohranu trenutne kompozicije</p>
+                <p>• -DISKETA- za pohranu trenutne kompozicije</p>
               </DialogDescription>
             </DialogHeader>
           </DialogContent>
@@ -775,30 +775,30 @@ export const GridPuzzle = () => {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="regular" id="regular" />
                     <Label htmlFor="regular">
-                      {getOrderTitle()} - {((imageCounts.S0 * 5) + (imageCounts.S1 * 10) + (imageCounts.S2 * 10)).toFixed(2)}€
+                      {getOrderTitle()} - {((imageCounts.S0 * 7) + (imageCounts.S1 * 12) + (imageCounts.S2 * 12)).toFixed(2)}€
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="magnetic" id="magnetic" />
                     <Label htmlFor="magnetic">
-                      {getOrderTitle()} M (pločice s čičak trakom za mogućnost mijenjanja kompozicije po želji) - {((imageCounts.S0 * 5) + (imageCounts.S1 * 10) + (imageCounts.S2 * 10) + (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3).toFixed(2)}€
+                      {getOrderTitle()} M (pločice s čičak trakom za mogućnost mijenjanja kompozicije po želji) - {((imageCounts.S0 * 7) + (imageCounts.S1 * 12) + (imageCounts.S2 * 12) + (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3).toFixed(2)}€
                     </Label>
                   </div>
                 </RadioGroup>
 
                 <div className="space-y-2">
-                  <p>S0: {imageCounts.S0} x 5€ = {imageCounts.S0 * 5}€</p>
-                  <p>S1: {imageCounts.S1} x 10€ = {imageCounts.S1 * 10}€</p>
-                  <p>S2: {imageCounts.S2} x 10€ = {imageCounts.S2 * 10}€</p>
+                  <p>S0: {imageCounts.S0} x 7€ = {imageCounts.S0 * 7}€</p>
+                  <p>S1: {imageCounts.S1} x 12€ = {imageCounts.S1 * 12}€</p>
+                  <p>S2: {imageCounts.S2} x 12€ = {imageCounts.S2 * 12}€</p>
                   {orderType === "magnetic" && (
                     <p>čičak dodatak: {(imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3}€</p>
                   )}
                   <p>Dimenzije: {horizontal && vertical ? `${parseInt(horizontal) * 15} x ${parseInt(vertical) * 15} cm` : ''}</p>
                   <p className="font-bold">
                     Ukupno: {(
-                      (imageCounts.S0 * 5) + 
-                      (imageCounts.S1 * 10) + 
-                      (imageCounts.S2 * 10) + 
+                      (imageCounts.S0 * 7) + 
+                      (imageCounts.S1 * 12) + 
+                      (imageCounts.S2 * 12) + 
                       (orderType === "magnetic" ? (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3 : 0)
                     ).toFixed(2)}€
                   </p>
