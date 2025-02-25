@@ -405,9 +405,9 @@ export const GridPuzzle = () => {
     }
 
     const subject = getOrderTitle();
-    const totalS0 = imageCounts.S0 * 8;
-    const totalS1 = imageCounts.S1 * 15;
-    const totalS2 = imageCounts.S2 * 15;
+    const totalS0 = imageCounts.S0 * 5;
+    const totalS1 = imageCounts.S1 * 10;
+    const totalS2 = imageCounts.S2 * 10;
     const magneticCost = orderType === "magnetic" ? (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3 : 0;
     const grandTotal = totalS0 + totalS1 + totalS2 + magneticCost;
     
@@ -420,10 +420,10 @@ export const GridPuzzle = () => {
     E-mail: ${orderForm.email}
 
     Narudžba:
-    S0: ${imageCounts.S0} x 8€ = ${totalS0}€
-    S1: ${imageCounts.S1} x 15€ = ${totalS1}€
-    S2: ${imageCounts.S2} x 15€ = ${totalS2}€
-    ${orderType === "magnetic" ? `Magnetni dodatak: ${magneticCost}€` : ''}
+    S0: ${imageCounts.S0} x 5€ = ${totalS0}€
+    S1: ${imageCounts.S1} x 10€ = ${totalS1}€
+    S2: ${imageCounts.S2} x 10€ = ${totalS2}€
+    ${orderType === "magnetic" ? `čičak dodatak: ${magneticCost}€` : ''}
 
     Dimenzije: ${horizontal && vertical ? `${parseInt(horizontal) * 15} x ${parseInt(vertical) * 15} cm` : ''}
     Ukupno: ${grandTotal.toFixed(2)}€
@@ -648,7 +648,7 @@ export const GridPuzzle = () => {
               <div className="flex gap-2">
                 <span className="text-sm font-medium">S0:</span>
                 <span className="text-sm">{imageCounts.S0}</span>
-                <span className="text-sm">x 8€</span>
+                <span className="text-sm">x 5€</span>
               </div>
               <span className="text-sm">{(imageCounts.S0 * 8)}€</span>
             </div>
@@ -656,7 +656,7 @@ export const GridPuzzle = () => {
               <div className="flex gap-2">
                 <span className="text-sm font-medium">S1:</span>
                 <span className="text-sm">{imageCounts.S1}</span>
-                <span className="text-sm">x 15€</span>
+                <span className="text-sm">x 10€</span>
               </div>
               <span className="text-sm">{(imageCounts.S1 * 15)}€</span>
             </div>
@@ -664,7 +664,7 @@ export const GridPuzzle = () => {
               <div className="flex gap-2">
                 <span className="text-sm font-medium">S2:</span>
                 <span className="text-sm">{imageCounts.S2}</span>
-                <span className="text-sm">x 15€</span>
+                <span className="text-sm">x 10€</span>
               </div>
               <span className="text-sm">{(imageCounts.S2 * 15)}€</span>
             </div>
@@ -675,7 +675,7 @@ export const GridPuzzle = () => {
               {horizontal && vertical && `${parseInt(horizontal) * 15} x ${parseInt(vertical) * 15} cm`}
             </span>
             <span className="font-bold">
-              {((imageCounts.S0 * 8) + (imageCounts.S1 * 15) + (imageCounts.S2 * 15)).toFixed(2)}€
+              {((imageCounts.S0 * 5) + (imageCounts.S1 * 10) + (imageCounts.S2 * 10)).toFixed(2)}€
             </span>
           </div>
         </div>
@@ -783,7 +783,7 @@ export const GridPuzzle = () => {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="magnetic" id="magnetic" />
                     <Label htmlFor="magnetic">
-                      {getOrderTitle()} M (pločice s magnetom za mogućnost mijenjanja kompozicije po želji) - {((imageCounts.S0 * 5) + (imageCounts.S1 * 10) + (imageCounts.S2 * 10) + (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3).toFixed(2)}€
+                      {getOrderTitle()} M (pločice s čičak trakom za mogućnost mijenjanja kompozicije po želji) - {((imageCounts.S0 * 5) + (imageCounts.S1 * 10) + (imageCounts.S2 * 10) + (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3).toFixed(2)}€
                     </Label>
                   </div>
                 </RadioGroup>
@@ -793,7 +793,7 @@ export const GridPuzzle = () => {
                   <p>S1: {imageCounts.S1} x 10€ = {imageCounts.S1 * 10}€</p>
                   <p>S2: {imageCounts.S2} x 10€ = {imageCounts.S2 * 10}€</p>
                   {orderType === "magnetic" && (
-                    <p>Magnetni dodatak: {(imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3}€</p>
+                    <p>čičak dodatak: {(imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3}€</p>
                   )}
                   <p>Dimenzije: {horizontal && vertical ? `${parseInt(horizontal) * 15} x ${parseInt(vertical) * 15} cm` : ''}</p>
                   <p className="font-bold">
