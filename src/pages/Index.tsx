@@ -18,13 +18,12 @@ const Index = () => {
     if (hasSeenIntro) {
       setShowIntro(false);
     }
-    // We're removing the auto-set of localStorage here to prevent it from closing instantly
-    // localStorage will be set when dialog is manually closed
+    // We don't set localStorage here anymore to prevent auto-closing
   }, []);
 
   const handleCloseIntro = () => {
     setShowIntro(false);
-    // Set a flag in localStorage when user manually closes the dialog
+    // Set localStorage flag only when user manually closes the dialog
     localStorage.setItem("hasSeenIntro", "true");
   };
 
