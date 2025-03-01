@@ -17,21 +17,17 @@ const Index = () => {
     const hasSeenIntro = localStorage.getItem("hasSeenIntro");
     if (hasSeenIntro) {
       setShowIntro(false);
+    } else {
+      // Set a flag in localStorage so we only show it once
+      localStorage.setItem("hasSeenIntro", "true");
     }
-    // We don't set localStorage here anymore to prevent auto-closing
   }, []);
-
-  const handleCloseIntro = () => {
-    setShowIntro(false);
-    // Set localStorage flag only when user manually closes the dialog
-    localStorage.setItem("hasSeenIntro", "true");
-  };
 
   return (
     <>
       <GridPuzzle />
       
-      <Dialog open={showIntro} onOpenChange={handleCloseIntro}>
+      <Dialog open={showIntro} onOpenChange={setShowIntro}>
         <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>Grid Puzzle Instructions</DialogTitle>
