@@ -45,7 +45,7 @@ export const GridPuzzle = () => {
   const [showWarning, setShowWarning] = useState(false);
   const [showFieldsWarning, setShowFieldsWarning] = useState(false);
   const [orderType, setOrderType] = useState<"regular" | "magnetic">("regular");
-  const [headerImage, setHeaderImage] = useState('https://i.imgur.com/uYx6gJV.jpeg');
+  const [headerImage, setHeaderImage] = useState('https://i.imgur.com/fubvRXX.jpeg');
   const [orderForm, setOrderForm] = useState<OrderFormData>({
     name: '',
     address: '',
@@ -476,7 +476,7 @@ export const GridPuzzle = () => {
           className="fixed top-[10px] z-[50]"
         >
           <img 
-            src="https://i.imgur.com/uYx6gJV.jpeg" 
+            src="https://i.imgur.com/fubvRXX.jpeg" 
             alt="Header"
             className="w-[200px]"
           />
