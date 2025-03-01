@@ -4,9 +4,7 @@ import { GridPuzzle } from "@/components/GridPuzzle";
 import { 
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle
+  DialogHeader
 } from "@/components/ui/dialog";
 
 const Index = () => {
@@ -28,13 +26,12 @@ const Index = () => {
       <GridPuzzle />
       
       <Dialog open={showIntro} onOpenChange={setShowIntro}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold mb-2">Welcome to Grid Puzzle!</DialogTitle>
-            <DialogDescription className="text-base">
-              Watch how to play the game:
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+          <img
+            src="https://i.imgur.com/uYx6gJV.jpeg"
+            alt="Game Instructions"
+            className="w-full h-auto"
+          />
           <div className="flex justify-center items-center p-2">
             <video 
               autoPlay 
