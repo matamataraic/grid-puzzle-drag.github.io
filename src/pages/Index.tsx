@@ -4,7 +4,9 @@ import { GridPuzzle } from "@/components/GridPuzzle";
 import { 
   Dialog,
   DialogContent,
-  DialogHeader
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog";
 
 const Index = () => {
@@ -15,20 +17,30 @@ const Index = () => {
     const hasSeenIntro = localStorage.getItem("hasSeenIntro");
     if (hasSeenIntro) {
       setShowIntro(false);
-    } else {
-      // Set a flag in localStorage so we only show it once
-      localStorage.setItem("hasSeenIntro", "true");
     }
+    // We don't set localStorage here anymore to prevent auto-closing
   }, []);
+
+  const handleCloseIntro = () => {
+    setShowIntro(false);
+    // Set localStorage flag only when user manually closes the dialog
+    localStorage.setItem("hasSeenIntro", "true");
+  };
 
   return (
     <>
       <GridPuzzle />
       
-      <Dialog open={showIntro} onOpenChange={setShowIntro}>
+      <Dialog open={showIntro} onOpenChange={handleCloseIntro}>
         <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Grid Puzzle Instructions</DialogTitle>
+            <DialogDescription>
+              Learn how to play the Grid Puzzle game
+            </DialogDescription>
+          </DialogHeader>
           <img
-            src="https://i.imgur.com/uYx6gJV.jpeg"
+            src="https://i.imgur.com/fubvRXX.jpeg"
             alt="Game Instructions"
             className="w-full h-auto"
           />
