@@ -1,34 +1,33 @@
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GridPuzzle } from "@/components/GridPuzzle";
 import { 
   Dialog,
   DialogContent,
-  DialogHeader
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog";
 
 const Index = () => {
   const [showIntro, setShowIntro] = useState(true);
 
-  useEffect(() => {
-    // Check if we've shown the intro before
-    const hasSeenIntro = localStorage.getItem("hasSeenIntro");
-    if (hasSeenIntro) {
-      setShowIntro(false);
-    } else {
-      // Set a flag in localStorage so we only show it once
-      localStorage.setItem("hasSeenIntro", "true");
-    }
-  }, []);
+  const handleCloseIntro = () => {
+    setShowIntro(false);
+  };
 
   return (
     <>
       <GridPuzzle />
       
-      <Dialog open={showIntro} onOpenChange={setShowIntro}>
+      <Dialog open={showIntro} onOpenChange={handleCloseIntro}>
         <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Game Instructions</DialogTitle>
+            <DialogDescription>Learn how to play the game</DialogDescription>
+          </DialogHeader>
           <img
-            src="https://i.imgur.com/uYx6gJV.jpeg"
+            src="https://i.imgur.com/fubvRXX.jpeg"
             alt="Game Instructions"
             className="w-full h-auto"
           />
