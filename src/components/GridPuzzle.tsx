@@ -781,7 +781,7 @@ export const GridPuzzle = () => {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="magnetic" id="magnetic" />
                     <Label htmlFor="magnetic">
-                      {getOrderTitle()}  ˇ  (pločice s čičak trakom za mogućnost mijenjanja kompozicije po želji) - {((imageCounts.S0 * 7) + (imageCounts.S1 * 12) + (imageCounts.S2 * 12) + (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3).toFixed(2)}€
+                      {getOrderTitle()}  ˇ  - (pločice s čičak trakom za mogućnost mijenjanja kompozicije po želji) - {((imageCounts.S0 * 7) + (imageCounts.S1 * 12) + (imageCounts.S2 * 12) + (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3).toFixed(2)}€
                     </Label>
                   </div>
                 </RadioGroup>
