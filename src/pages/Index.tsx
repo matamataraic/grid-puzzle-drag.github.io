@@ -20,7 +20,7 @@ const Index = () => {
     <>
       <GridPuzzle />
       
-      <Dialog open={showIntro} onOpenChange={handleCloseIntro}>
+      <Dialog open={showIntro} onOpenChange={setShowIntro}>
         <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>Game Instructions</DialogTitle>
@@ -33,11 +33,13 @@ const Index = () => {
           />
           <div className="flex justify-center items-center p-2">
             <video 
+              playsInline
               autoPlay 
               muted 
               loop 
               className="w-full rounded-md shadow-md" 
               src="https://i.imgur.com/XnMKUGn.mp4"
+              type="video/mp4"
             >
               Your browser does not support the video tag.
             </video>
