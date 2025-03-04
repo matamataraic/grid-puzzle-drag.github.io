@@ -17,27 +17,29 @@ const Index = () => {
       <GridPuzzle />
       
       <Dialog open={showIntro} onOpenChange={setShowIntro}>
-        <DialogContent className="sm:max-w-[600px] p-0 overflow-auto max-h-[75vh] max-w-[95vw] top-[5vh] translate-y-0">
+        <DialogContent className="sm:max-w-[80vw] w-[80vw] h-[80vh] p-0 overflow-auto max-h-[80vh] max-w-[80vw] top-[10vh] translate-y-0 flex flex-col">
           <DialogHeader className="sr-only">
             <DialogTitle>Game Instructions</DialogTitle>
             <DialogDescription>Learn how to play the game</DialogDescription>
           </DialogHeader>
-          <img
-            src="https://i.imgur.com/fubvRXX.jpeg"
-            alt="Game Instructions"
-            className="w-full h-auto mt-2"
-          />
-          <div className="flex justify-center items-center p-2">
-            <video 
-              playsInline
-              autoPlay 
-              muted 
-              loop 
-              className="w-full rounded-md shadow-md" 
-              src="https://i.imgur.com/XnMKUGn.mp4"
-            >
-              Your browser does not support the video tag.
-            </video>
+          <div className="flex-1 overflow-auto flex flex-col">
+            <img
+              src="https://i.imgur.com/fubvRXX.jpeg"
+              alt="Game Instructions"
+              className="w-full object-contain mt-2"
+            />
+            <div className="flex justify-center items-center p-2 flex-1">
+              <video 
+                playsInline
+                autoPlay 
+                muted 
+                loop 
+                className="w-full h-auto rounded-md shadow-md max-h-full object-contain" 
+                src="https://i.imgur.com/XnMKUGn.mp4"
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
