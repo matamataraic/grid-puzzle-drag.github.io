@@ -12,16 +12,12 @@ import {
 const Index = () => {
   const [showIntro, setShowIntro] = useState(true);
 
-  const handleCloseIntro = () => {
-    setShowIntro(false);
-  };
-
   return (
     <>
       <GridPuzzle />
       
       <Dialog open={showIntro} onOpenChange={setShowIntro}>
-        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[600px] p-0 overflow-auto max-h-[90vh] max-w-[95vw] top-[5vh] translate-y-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Game Instructions</DialogTitle>
             <DialogDescription>Learn how to play the game</DialogDescription>
@@ -39,7 +35,6 @@ const Index = () => {
               loop 
               className="w-full rounded-md shadow-md" 
               src="https://i.imgur.com/XnMKUGn.mp4"
-              type="video/mp4"
             >
               Your browser does not support the video tag.
             </video>
