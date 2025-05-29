@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Puzzle Drag</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-puzzle-piece"></i> Grid Puzzle Drag</h1>
+            <div class="controls">
+                <button id="newGame" class="btn btn-primary">
+                    <i class="fas fa-play"></i> New Game
+                </button>
+                <button id="shuffleBtn" class="btn btn-secondary">
+                    <i class="fas fa-random"></i> Shuffle
+                </button>
+                <button id="solveBtn" class="btn btn-success">
+                    <i class="fas fa-check"></i> Solve
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="game-info">
+                <div class="info-item">
+                    <span class="label">Moves:</span>
+                    <span id="moveCounter">0</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Time:</span>
+                    <span id="timer">00:00</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Status:</span>
+                    <span id="gameStatus">Ready</span>
+                </div>
+            </div>
+
+            <div class="puzzle-container">
+                <div id="puzzleGrid" class="puzzle-grid">
+                    <!-- Grid cells will be generated dynamically -->
+                </div>
+            </div>
+
+            <div class="difficulty-selector">
+                <label for="gridSize">Grid Size:</label>
+                <select id="gridSize">
+                    <option value="3">3x3 (Easy)</option>
+                    <option value="4" selected>4x4 (Medium)</option>
+                    <option value="5">5x5 (Hard)</option>
+                </select>
+            </div>
+        </main>
+
+        <footer>
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> How to Play</h3>
+                <ul>
+                    <li>Drag and drop tiles to arrange them in numerical order</li>
+                    <li>The empty space can be used to move tiles</li>
+                    <li>Complete the puzzle by arranging numbers 1 to N-1</li>
+                    <li>The bottom-right cell should remain empty</li>
+                </ul>
+            </div>
+        </footer>
+    </div>
+
+    <div id="winModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-trophy"></i> Congratulations!</h2>
+            </div>
+            <div class="modal-body">
+                <p>You solved the puzzle!</p>
+                <div class="stats">
+                    <div class="stat">
+                        <strong>Moves:</strong> <span id="finalMoves">0</span>
+                    </div>
+                    <div class="stat">
+                        <strong>Time:</strong> <span id="finalTime">00:00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="playAgain" class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Play Again
+                </button>
+                <button id="closeModal" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
