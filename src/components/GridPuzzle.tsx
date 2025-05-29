@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Info, RotateCcw, Save, Eye } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -503,50 +502,40 @@ export const GridPuzzle = () => {
         </div>
 
         <div className="fixed top-[95px] z-20 flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => setShowInfo(true)}
             className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
           >
             <Info className="w-4 h-4" />
-          </motion.button>
+          </button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={handleStart}
             className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
           >
             Start
-          </motion.button>
+          </button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={handleRandom}
             className="px-4 py-2 bg-neutral-900 text-white rounded-md font-medium"
           >
             Rndm
-          </motion.button>
+          </button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={handleClear}
             className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
           >
             Clear
-          </motion.button>
+          </button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={handleRestart}
             className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
           >
             <RotateCcw className="w-4 h-4" />
-          </motion.button>
+          </button>
         </div>
 
         {isGridGenerated && (
@@ -574,12 +563,11 @@ export const GridPuzzle = () => {
                   onDoubleClick={() => handleGridDoubleClick(y, x)}
                 >
                   {tile && (
-                    <motion.img
+                    <img
                       src={images[tile.imageIndex]}
                       className="w-full h-full object-cover cursor-pointer"
-                      animate={{ rotate: tile.rotation }}
+                      style={{ transform: `rotate(${tile.rotation}deg)` }}
                       onClick={() => handleRotate(y, x)}
-                      transition={{ type: 'spring', stiffness: 200 }}
                     />
                   )}
                 </div>
@@ -588,59 +576,50 @@ export const GridPuzzle = () => {
           </div>
         )}
 
-        <AnimatePresence>
-          {tiles.map((tile) => (
-            <motion.img
-              key={tile.id}
-              src={images[tile.imageIndex]}
-              className={cn(
-                'absolute w-[50px] h-[50px] cursor-move',
-                'hover:shadow-lg transition-shadow'
-              )}
-              style={{
-                left: tile.x,
-                top: tile.y,
-                rotate: tile.rotation,
-                zIndex: 1
-              }}
-              drag
-              onDragEnd={(event, info) => handleDragEnd(event, info, tile.id)}
-              onDoubleClick={() => handleDoubleClick(tile.id)}
-              whileHover={{ scale: 1.1 }}
-              whileDrag={{ zIndex: 15 }}
-              initial={{ opacity: 1, scale: 1 }}
-              animate={{ opacity: 0.08, scale: 1 }}
-              transition={{ duration: 0 }}
-            />
-          ))}
-        </AnimatePresence>
+        {tiles.map((tile) => (
+          <img
+            key={tile.id}
+            src={images[tile.imageIndex]}
+            className={cn(
+              'absolute w-[50px] h-[50px] cursor-move',
+              'hover:shadow-lg transition-shadow'
+            )}
+            style={{
+              left: tile.x,
+              top: tile.y,
+              transform: `rotate(${tile.rotation}deg)`,
+              zIndex: 1,
+              opacity: 0.08
+            }}
+            draggable
+            onDragEnd={(event) => {
+              const info = { point: { x: event.clientX, y: event.clientY } };
+              handleDragEnd(event, info, tile.id);
+            }}
+            onDoubleClick={() => handleDoubleClick(tile.id)}
+          />
+        ))}
 
         <div className="fixed bottom-[5px] left-0 right-0 flex flex-col items-center gap-1 pb-10 z-20">
           <div className="flex items-center gap-2">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => setShowPreview(true)}
               className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
             >
               <Eye className="w-4 h-4" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            </button>
+            <button
               onClick={handleOrderClick}
               className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
             >
               Order
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            </button>
+            <button
               onClick={handleSave}
               className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
             >
               <Save className="w-4 h-4" />
-            </motion.button>
+            </button>
           </div>
 
           <div className="flex items-start gap-10 mt-2.5">
@@ -720,17 +699,13 @@ export const GridPuzzle = () => {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex gap-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => setShowWarning(false)}
                 className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
               >
                 Nazad
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              </button>
+              <button
                 onClick={() => {
                   setShowWarning(false);
                   setShowOrder(true);
@@ -738,7 +713,7 @@ export const GridPuzzle = () => {
                 className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
               >
                 Ok
-              </motion.button>
+              </button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -752,14 +727,12 @@ export const GridPuzzle = () => {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => setShowFieldsWarning(false)}
                 className="px-6 py-2 bg-neutral-900 text-white rounded-md font-medium"
               >
                 Ok
-              </motion.button>
+              </button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -849,14 +822,12 @@ export const GridPuzzle = () => {
                   />
                 </div>
 
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={handleSubmitOrder}
                   className="w-full px-6 py-2 bg-neutral-900 text-white rounded-md font-medium mt-4"
                 >
                   Pošalji
-                </motion.button>
+                </button>
               </DialogDescription>
             </DialogHeader>
           </DialogContent>
