@@ -33,13 +33,19 @@ const Landing = () => {
         setHeaderHeight(newHeaderHeight);
         
         // Generate grid immediately after getting header height
-        const tileSize = 52; // 50px tiles + 2px white grout
+        const tileSize = 51; // 50px tiles + 1px white grout
         const footerHeight = 104;
         const availableWidth = window.innerWidth;
         const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
         
-        const cols = Math.ceil(availableWidth / tileSize);
-        const rows = Math.ceil(availableHeight / tileSize);
+        const cols = Math.floor(availableWidth / tileSize);
+        const rows = Math.floor(availableHeight / tileSize);
+        
+        // Calculate offsets to center the grid
+        const totalGridWidth = cols * tileSize;
+        const totalGridHeight = rows * tileSize;
+        const offsetX = (availableWidth - totalGridWidth) / 2;
+        const offsetY = (availableHeight - totalGridHeight) / 2;
         
         setGridDimensions({ cols, rows });
         
@@ -50,8 +56,8 @@ const Landing = () => {
           for (let col = 0; col < cols; col++) {
             tiles.push({
               id: `static-tile-${index}`,
-              gridX: col,
-              gridY: row,
+              gridX: col * tileSize + offsetX,
+              gridY: row * tileSize + offsetY,
               rotation: Math.floor(Math.random() * 4) * 90,
               imageIndex: Math.floor(Math.random() * images.length),
             });
@@ -163,8 +169,8 @@ const Landing = () => {
               draggedTile === tile.id ? 'opacity-50 scale-110' : ''
             }`}
             style={{
-              left: `${tile.gridX * 52}px`,
-              top: `${tile.gridY * 52}px`,
+              left: `${tile.gridX}px`,
+              top: `${tile.gridY}px`,
               width: '50px',
               height: '50px',
             }}
