@@ -207,9 +207,11 @@ export const GridPuzzle = () => {
       
       // Always place the dragged tile in the target cell, preserving its rotation
       updatedGrid[cellY][cellX] = { 
-        ...draggedTile,
         id: `grid-tile-${cellY}-${cellX}`, // Give it a new ID for the grid
-        rotation: draggedTile.rotation // Preserve the rotation from the background tile
+        x: cellX * 50, // Grid position
+        y: cellY * 50, // Grid position
+        rotation: draggedTile.rotation, // Preserve the rotation from the background tile
+        imageIndex: draggedTile.imageIndex // Preserve the image from the background tile
       };
       
       setGridTiles(updatedGrid);
