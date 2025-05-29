@@ -26,57 +26,57 @@ const Landing = () => {
   ];
 
   useEffect(() => {
-    // Calculate header height
-    if (headerRef.current) {
-      setHeaderHeight(headerRef.current.offsetHeight);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Generate static grid of tiles that fills the entire available space
-    const generateStaticGrid = () => {
-      const tileSize = 51; // 50px tile + 1px white border
-      const footerHeight = 104; // Actual footer height (py-8 = 32px top/bottom + content)
-      const availableWidth = window.innerWidth;
-      const availableHeight = window.innerHeight - headerHeight - footerHeight;
-      
-      const cols = Math.floor(availableWidth / tileSize);
-      const rows = Math.floor(availableHeight / tileSize);
-      
-      setGridDimensions({ cols, rows });
-      
-      const tiles: StaticTile[] = [];
-      let index = 0;
-      
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          tiles.push({
-            id: `static-tile-${index}`,
-            gridX: col,
-            gridY: row,
-            rotation: Math.floor(Math.random() * 4) * 90,
-            imageIndex: Math.floor(Math.random() * images.length),
-          });
-          index++;
+    // Calculate header height and generate grid
+    const calculateAndGenerate = () => {
+      if (headerRef.current) {
+        const newHeaderHeight = headerRef.current.offsetHeight;
+        setHeaderHeight(newHeaderHeight);
+        
+        // Generate grid immediately after getting header height
+        const tileSize = 50; // 50px tiles with no gaps
+        const footerHeight = 104;
+        const availableWidth = window.innerWidth;
+        const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
+        
+        const cols = Math.ceil(availableWidth / tileSize);
+        const rows = Math.ceil(availableHeight / tileSize);
+        
+        setGridDimensions({ cols, rows });
+        
+        const tiles: StaticTile[] = [];
+        let index = 0;
+        
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            tiles.push({
+              id: `static-tile-${index}`,
+              gridX: col,
+              gridY: row,
+              rotation: Math.floor(Math.random() * 4) * 90,
+              imageIndex: Math.floor(Math.random() * images.length),
+            });
+            index++;
+          }
         }
+        setStaticTiles(tiles);
       }
-      setStaticTiles(tiles);
     };
 
-    if (headerHeight > 0) {
-      generateStaticGrid();
-    }
+    // Initial calculation
+    calculateAndGenerate();
+    
+    // Also run after a small delay to ensure DOM is ready
+    const timer = setTimeout(calculateAndGenerate, 100);
     
     // Regenerate on window resize
-    const handleResize = () => {
-      if (headerHeight > 0) {
-        generateStaticGrid();
-      }
-    };
+    const handleResize = () => calculateAndGenerate();
     window.addEventListener('resize', handleResize);
     
-    return () => window.removeEventListener('resize', handleResize);
-  }, [headerHeight]);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const handleDesignClick = () => {
     navigate("/design");
@@ -154,19 +154,18 @@ const Landing = () => {
       </div>
 
       {/* Static Grid Space - Full Width */}
-      <div className="w-full flex-1 relative bg-black">
+      <div className="w-full flex-1 relative bg-white overflow-hidden">
         {staticTiles.map((tile) => (
           <div
             key={tile.id}
-            className={`absolute cursor-pointer transition-all duration-200 hover:scale-105 border border-white ${
+            className={`absolute cursor-pointer transition-all duration-200 hover:scale-105 ${
               draggedTile === tile.id ? 'opacity-50 scale-110' : ''
             }`}
             style={{
-              left: `${tile.gridX * 51}px`,
-              top: `${tile.gridY * 51}px`,
+              left: `${tile.gridX * 50}px`,
+              top: `${tile.gridY * 50}px`,
               width: '50px',
               height: '50px',
-              backgroundColor: 'black',
             }}
             draggable
             onDragStart={(e) => handleDragStart(e, tile.id)}
