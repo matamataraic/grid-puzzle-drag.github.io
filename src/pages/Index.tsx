@@ -17,12 +17,12 @@ const Index = () => {
       <GridPuzzle />
       
       <Dialog open={showIntro} onOpenChange={setShowIntro}>
-        <DialogContent className="w-[90vw] h-[90vh] p-0 overflow-hidden border-0 shadow-none bg-transparent flex flex-col">
+        <DialogContent className="w-[90vw] h-[90vh] p-0 overflow-hidden border bg-background shadow-lg flex flex-col">
           <DialogHeader className="sr-only">
             <DialogTitle>Game Instructions</DialogTitle>
             <DialogDescription>Learn how to play the game</DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col h-full pt-12">
+          <div className="flex flex-col h-full">
             <img
               src="https://i.imgur.com/fubvRXX.jpeg"
               alt="Game Instructions"
