@@ -121,7 +121,7 @@ export const GridPuzzle = () => {
 
   const generateRandomTiles = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
-    
+
     const cols = Math.floor(window.innerWidth / 51);
     const rows = Math.floor(window.innerHeight / 51);
 
@@ -168,7 +168,7 @@ export const GridPuzzle = () => {
       const newGrid = Array(v).fill(null).map(() => Array(h).fill(null));
       setGridTiles(newGrid);
     }
-    
+
     setIsGridGenerated(true);
   };
 
@@ -180,55 +180,40 @@ export const GridPuzzle = () => {
     setImageCounts({ S0: 0, S1: 0, S2: 0 });
   };
 
-  const handleDragEnd = (
-    event: any,
-    info: any,
-    tileId: string,
-  ) => {
-    if (!gridRef.current) return;
-
-    const gridRect = gridRef.current.getBoundingClientRect();
-    const x = event.clientX - gridRect.left;
-    const y = event.clientY - gridRect.top;
-
-    const cellX = Math.floor(x / 50);
-    const cellY = Math.floor(y / 50);
-
+  const handleDragEnd = (event: React.DragEvent, info: { point: { x: number; y: number } }, tileId: string) => {
+    const { x, y } = info.point;
     const draggedTile = tiles.find(t => t.id === tileId);
 
-    if (
-      draggedTile &&
-      cellX >= 0 &&
-      cellX < parseInt(horizontal) &&
-      cellY >= 0 &&
-      cellY < parseInt(vertical)
-    ) {
-      const updatedGrid = [...gridTiles];
-      
-      // Always place the dragged tile in the target cell, regardless of whether it's empty or filled
-      updatedGrid[cellY][cellX] = { 
-        ...draggedTile,
-        id: `grid-tile-${cellY}-${cellX}` // Give it a new ID for the grid
-      };
-      
-      setGridTiles(updatedGrid);
-      
-      // Remove the dragged tile from floating tiles and replace it with a new random one
-      const newTile: TilePosition = {
-        id: `tile-${Date.now()}`,
-        x: draggedTile.x,
-        y: draggedTile.y,
-        rotation: Math.floor(Math.random() * 4) * 90,
-        imageIndex: Math.floor(Math.random() * images.length),
-      };
-      
-      setTiles(prev => prev.filter(t => t.id !== tileId).concat([newTile]));
-    } else {
-      // If dropped outside the grid, move the tile to the drop position
-      const dropX = event.clientX;
-      const dropY = event.clientY;
-      
-      if (draggedTile) {
+    if (!draggedTile) return;
+
+    // Check if the drop point is within the grid container
+    if (gridRef.current) {
+      const gridRect = gridRef.current.getBoundingClientRect();
+      const relativeX = x - gridRect.left;
+      const relativeY = y - gridRect.top;
+
+      // Check if the drop is within the grid bounds
+      if (
+        relativeX >= 0 &&
+        relativeY >= 0 &&
+        relativeX <= gridRect.width &&
+        relativeY <= gridRect.height
+      ) {
+        // Calculate the closest grid cell
+        const cellX = Math.max(0, Math.min(parseInt(horizontal) - 1, Math.floor(relativeX / 50)));
+        const cellY = Math.max(0, Math.min(parseInt(vertical) - 1, Math.floor(relativeY / 50)));
+
+        const updatedGrid = [...gridTiles];
+
+        // Replace the tile in the closest grid cell
+        updatedGrid[cellY][cellX] = { 
+          ...draggedTile,
+          id: `grid-tile-${cellY}-${cellX}`
+        };
+
+        setGridTiles(updatedGrid);
+
+        // Remove the dragged tile from floating tiles and replace it with a new random one
         const newTile: TilePosition = {
           id: `tile-${Date.now()}`,
           x: draggedTile.x,
@@ -236,17 +221,32 @@ export const GridPuzzle = () => {
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * images.length),
         };
-        
-        const updatedTiles = tiles
-          .filter(t => t.id !== tileId)
-          .concat([
-            { ...draggedTile, x: dropX - 25, y: dropY - 25 },
-            newTile
-          ]);
-        
-        setTiles(updatedTiles);
+
+        setTiles(prev => prev.filter(t => t.id !== tileId).concat([newTile]));
+        return;
       }
     }
+
+    // If dropped outside the grid, move the tile to the drop position
+    const dropX = event.clientX;
+    const dropY = event.clientY;
+
+    const newTile: TilePosition = {
+      id: `tile-${Date.now()}`,
+      x: draggedTile.x,
+      y: draggedTile.y,
+      rotation: Math.floor(Math.random() * 4) * 90,
+      imageIndex: Math.floor(Math.random() * images.length),
+    };
+
+    const updatedTiles = tiles
+      .filter(t => t.id !== tileId)
+      .concat([
+        { ...draggedTile, x: dropX - 25, y: dropY - 25 },
+        newTile
+      ]);
+
+    setTiles(updatedTiles);
   };
 
   const handleRotate = (y: number, x: number) => {
@@ -279,7 +279,7 @@ export const GridPuzzle = () => {
     if (placed) {
       setGridTiles(updatedGrid);
       setTiles(prev => prev.filter(t => t.id !== tileId));
-      
+
       const newTile: TilePosition = {
         id: `tile-${Date.now()}`,
         x: tile.x,
@@ -309,7 +309,7 @@ export const GridPuzzle = () => {
     const randomV = Math.floor(Math.random() * 9) + 2;
     setHorizontal(randomH.toString());
     setVertical(randomV.toString());
-    
+
     const newGrid = Array(randomV).fill(null).map(() => 
       Array(randomH).fill(null).map(() => ({
         id: `tile-${Date.now()}-${Math.random()}`,
@@ -319,7 +319,7 @@ export const GridPuzzle = () => {
         imageIndex: Math.floor(Math.random() * images.length),
       }))
     );
-    
+
     setGridTiles(newGrid);
     setIsGridGenerated(true);
   };
@@ -412,7 +412,7 @@ export const GridPuzzle = () => {
     const totalS2 = imageCounts.S2 * 12;
     const magneticCost = orderType === "magnetic" ? (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3 : 0;
     const grandTotal = totalS0 + totalS1 + totalS2 + magneticCost;
-    
+
     const body = `
     Ime i prezime: ${orderForm.name}
     Ulica stanovanja: ${orderForm.address}
@@ -746,7 +746,7 @@ export const GridPuzzle = () => {
               <DialogTitle>{getOrderTitle()}</DialogTitle>
               <DialogDescription className="text-left space-y-4">
                 <p>Ispunjavanjem ove forme generira se mail za narudžbu. nakon zaprimanja, na mail ćemo Vam poslati račun. obavijestit ćemo Vas o vidljivoj uplati nakon čega je rok isporuke dva tjedna</p>
-                
+
                 <RadioGroup value={orderType} onValueChange={(value) => setOrderType(value as "regular" | "magnetic")}>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="regular" id="regular" />
