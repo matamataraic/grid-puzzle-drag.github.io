@@ -114,15 +114,16 @@ const Landing = () => {
       const targetIndex = newTiles.findIndex(t => t.id === targetTileId);
       
       if (draggedIndex !== -1 && targetIndex !== -1) {
-        // Swap positions
-        const draggedGridX = newTiles[draggedIndex].gridX;
-        const draggedGridY = newTiles[draggedIndex].gridY;
+        // Store the dragged tile's image properties
+        const draggedImageIndex = newTiles[draggedIndex].imageIndex;
+        const draggedRotation = newTiles[draggedIndex].rotation;
         
-        newTiles[draggedIndex].gridX = newTiles[targetIndex].gridX;
-        newTiles[draggedIndex].gridY = newTiles[targetIndex].gridY;
-        
-        newTiles[targetIndex].gridX = draggedGridX;
-        newTiles[targetIndex].gridY = draggedGridY;
+        // Move the dragged tile's image to the target position
+        newTiles[targetIndex] = {
+          ...newTiles[targetIndex],
+          imageIndex: draggedImageIndex,
+          rotation: draggedRotation,
+        };
         
         // Replace the dragged tile with a new random one
         newTiles[draggedIndex] = {
