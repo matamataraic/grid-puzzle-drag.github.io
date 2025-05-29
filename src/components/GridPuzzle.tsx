@@ -194,7 +194,6 @@ export const GridPuzzle = () => {
     const cellX = Math.floor(x / 50);
     const cellY = Math.floor(y / 50);
 
-    const updatedTiles = tiles.filter(t => t.id !== tileId);
     const draggedTile = tiles.find(t => t.id === tileId);
 
     if (
@@ -205,23 +204,27 @@ export const GridPuzzle = () => {
       cellY < parseInt(vertical)
     ) {
       const updatedGrid = [...gridTiles];
-      if (updatedGrid[cellY][cellX] === null) {
-        updatedGrid[cellY][cellX] = { ...draggedTile };
-        setGridTiles(updatedGrid);
-        setTiles(updatedTiles);
-        
-        const newTile: TilePosition = {
-          id: `tile-${Date.now()}`,
-          x: draggedTile.x,
-          y: draggedTile.y,
-          rotation: Math.floor(Math.random() * 4) * 90,
-          imageIndex: Math.floor(Math.random() * images.length),
-        };
-        setTiles(prev => [...prev, newTile]);
-      } else {
-        setTiles(prev => [...prev]);
-      }
+      
+      // Always place the dragged tile in the target cell, regardless of whether it's empty or filled
+      updatedGrid[cellY][cellX] = { 
+        ...draggedTile,
+        id: `grid-tile-${cellY}-${cellX}` // Give it a new ID for the grid
+      };
+      
+      setGridTiles(updatedGrid);
+      
+      // Remove the dragged tile from floating tiles and replace it with a new random one
+      const newTile: TilePosition = {
+        id: `tile-${Date.now()}`,
+        x: draggedTile.x,
+        y: draggedTile.y,
+        rotation: Math.floor(Math.random() * 4) * 90,
+        imageIndex: Math.floor(Math.random() * images.length),
+      };
+      
+      setTiles(prev => prev.filter(t => t.id !== tileId).concat([newTile]));
     } else {
+      // If dropped outside the grid, move the tile to the drop position
       const dropX = event.clientX;
       const dropY = event.clientY;
       
