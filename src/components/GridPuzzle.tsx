@@ -205,10 +205,11 @@ export const GridPuzzle = () => {
     ) {
       const updatedGrid = [...gridTiles];
       
-      // Always place the dragged tile in the target cell, regardless of whether it's empty or filled
+      // Always place the dragged tile in the target cell, preserving its rotation
       updatedGrid[cellY][cellX] = { 
         ...draggedTile,
-        id: `grid-tile-${cellY}-${cellX}` // Give it a new ID for the grid
+        id: `grid-tile-${cellY}-${cellX}`, // Give it a new ID for the grid
+        rotation: draggedTile.rotation // Preserve the rotation from the background tile
       };
       
       setGridTiles(updatedGrid);
@@ -248,6 +249,14 @@ export const GridPuzzle = () => {
       };
       setGridTiles(updatedGrid);
     }
+  };
+
+  const handleTileClick = (tileId: string) => {
+    setTiles(prev => prev.map(tile => 
+      tile.id === tileId 
+        ? { ...tile, rotation: (tile.rotation + 90) % 360 }
+        : tile
+    ));
   };
 
   const handleDoubleClick = (tileId: string) => {
@@ -585,6 +594,7 @@ export const GridPuzzle = () => {
               opacity: 0.08
             }}
             draggable
+            onClick={() => handleTileClick(tile.id)}
             onDragEnd={(event) => {
               const info = { point: { x: event.clientX, y: event.clientY } };
               handleDragEnd(event, info, tile.id);
