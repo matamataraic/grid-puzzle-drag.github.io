@@ -146,7 +146,7 @@ const Landing = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header Image - Full Width */}
-      <div className="w-full" ref={headerRef}>
+      <div className="w-full pt-[10px]" ref={headerRef}>
         <img
           src="https://i.imgur.com/fubvRXX.jpeg"
           alt="Game Instructions"
