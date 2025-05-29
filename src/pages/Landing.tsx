@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
@@ -17,7 +18,7 @@ const Landing = () => {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-
+  
   const images = [
     'https://i.imgur.com/RSSS8zt.png',
     'https://i.imgur.com/6xIAB8j.png',
@@ -25,70 +26,94 @@ const Landing = () => {
   ];
 
   useEffect(() => {
-    const updateGrid = () => {
+    // Calculate header height and generate grid
+    const calculateAndGenerate = () => {
       if (headerRef.current) {
-        const headerHeight = headerRef.current.offsetHeight;
-        setHeaderHeight(headerHeight);
-
-        const footerHeight = 100; // Approximate footer height
-        const availableHeight = window.innerHeight - headerHeight - footerHeight;
+        const newHeaderHeight = headerRef.current.offsetHeight;
+        setHeaderHeight(newHeaderHeight);
+        
+        // Generate grid immediately after getting header height
+        const tileSize = 51; // 50px tiles + 1px white grout
+        const footerHeight = 104;
         const availableWidth = window.innerWidth;
-
-        // Calculate grid dimensions with 1px grout
-        const tileSize = 51; // 50px tile + 1px grout
-        const cols = Math.floor(availableWidth / tileSize);
-        const rows = Math.floor(availableHeight / tileSize);
-
-        setGridDimensions({ cols, rows });
-
-        // Calculate center position for the central grout
-        const centerCol = Math.floor(cols / 2);
-        const centerRow = Math.floor(rows / 2);
-
-        // Calculate starting position to center the grid
-        const totalGridWidth = cols * tileSize - 1; // -1 because last tile doesn't need grout
-        const totalGridHeight = rows * tileSize - 1;
-        const startX = (availableWidth - totalGridWidth) / 2;
-        const startY = headerHeight + (availableHeight - totalGridHeight) / 2;
-
-        // Generate tiles for the grid using a systematic approach to prevent overlapping
-        const newTiles: StaticTile[] = [];
-        const occupiedPositions = new Set<string>();
-
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < cols; col++) {
-            // Skip the center position for the grout
-            if (row === centerRow && col === centerCol) {
-              continue;
-            }
-
-            const x = Math.round(startX + col * tileSize);
-            const y = Math.round(startY + row * tileSize);
-            const positionKey = `${x}-${y}`;
-
-            // Only add tile if position is not occupied
-            if (!occupiedPositions.has(positionKey)) {
-              occupiedPositions.add(positionKey);
-
-              newTiles.push({
-                id: `tile-${row}-${col}`,
+        const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
+        
+        // Start from center and build outward to ensure center grout stays centered
+        const centerX = availableWidth / 2;
+        const centerY = availableHeight / 2;
+        
+        // Calculate how many tiles can fit on each side of center
+        const maxColsLeft = Math.floor(centerX / tileSize);
+        const maxColsRight = Math.floor(centerX / tileSize);
+        const maxRows = Math.floor(availableHeight / tileSize);
+        
+        // Create center column first
+        const tiles: StaticTile[] = [];
+        let index = 0;
+        
+        // Center grout line is exactly at centerX - 0.5
+        const centerGroutX = centerX - 0.5;
+        
+        // Calculate vertical start position to center the grid vertically
+        const totalGridHeight = maxRows * tileSize;
+        const startY = (availableHeight - totalGridHeight) / 2;
+        
+        for (let row = 0; row < maxRows; row++) {
+          const y = row * tileSize + startY + 0.5;
+          
+          // Build tiles to the right of center grout (starting immediately after grout)
+          for (let col = 0; col < maxColsRight; col++) {
+            const x = centerGroutX + 0.5 + (col * tileSize);
+            if (x + tileSize <= availableWidth) {
+              tiles.push({
+                id: `static-tile-${index}`,
                 gridX: x,
                 gridY: y,
                 rotation: Math.floor(Math.random() * 4) * 90,
                 imageIndex: Math.floor(Math.random() * images.length),
               });
+              index++;
+            }
+          }
+          
+          // Build tiles to the left of center grout
+          for (let col = 1; col <= maxColsLeft; col++) {
+            const x = centerGroutX + 0.5 - (col * tileSize);
+            if (x >= 0) {
+              tiles.push({
+                id: `static-tile-${index}`,
+                gridX: x,
+                gridY: y,
+                rotation: Math.floor(Math.random() * 4) * 90,
+                imageIndex: Math.floor(Math.random() * images.length),
+              });
+              index++;
             }
           }
         }
-
-        setStaticTiles(newTiles);
+        
+        const totalCols = maxColsLeft + maxColsRight;
+        
+        setGridDimensions({ cols: totalCols, rows: maxRows });
+        setStaticTiles(tiles);
       }
     };
 
-    updateGrid();
-    window.addEventListener('resize', updateGrid);
-    return () => window.removeEventListener('resize', updateGrid);
-  }, [images]);
+    // Initial calculation
+    calculateAndGenerate();
+    
+    // Also run after a small delay to ensure DOM is ready
+    const timer = setTimeout(calculateAndGenerate, 100);
+    
+    // Regenerate on window resize
+    const handleResize = () => calculateAndGenerate();
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const handleDesignClick = () => {
     navigate("/design");
@@ -114,7 +139,7 @@ const Landing = () => {
 
   const handleDrop = (e: React.DragEvent, targetTileId: string) => {
     e.preventDefault();
-
+    
     if (!draggedTile || draggedTile === targetTileId) {
       setDraggedTile(null);
       return;
@@ -124,19 +149,19 @@ const Landing = () => {
       const newTiles = [...prev];
       const draggedIndex = newTiles.findIndex(t => t.id === draggedTile);
       const targetIndex = newTiles.findIndex(t => t.id === targetTileId);
-
+      
       if (draggedIndex !== -1 && targetIndex !== -1) {
         // Store the dragged tile's image properties
         const draggedImageIndex = newTiles[draggedIndex].imageIndex;
         const draggedRotation = newTiles[draggedIndex].rotation;
-
+        
         // Move the dragged tile's image to the target position
         newTiles[targetIndex] = {
           ...newTiles[targetIndex],
           imageIndex: draggedImageIndex,
           rotation: draggedRotation,
         };
-
+        
         // Replace the dragged tile with a new random one
         newTiles[draggedIndex] = {
           ...newTiles[draggedIndex],
@@ -144,10 +169,10 @@ const Landing = () => {
           imageIndex: Math.floor(Math.random() * images.length),
         };
       }
-
+      
       return newTiles;
     });
-
+    
     setDraggedTile(null);
   };
 
