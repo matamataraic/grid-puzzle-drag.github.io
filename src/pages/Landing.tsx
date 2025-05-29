@@ -38,32 +38,65 @@ const Landing = () => {
         const availableWidth = window.innerWidth;
         const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
         
-        const cols = Math.floor(availableWidth / tileSize);
-        const rows = Math.floor(availableHeight / tileSize);
+        // Calculate how many tiles can fit
+        const maxCols = Math.floor(availableWidth / tileSize);
+        const maxRows = Math.floor(availableHeight / tileSize);
         
-        // Calculate offsets to center the grid with centered grout
-        const totalGridWidth = cols * tileSize - 1; // Subtract 1 to account for no grout after last tile
-        const totalGridHeight = rows * tileSize - 1; // Subtract 1 to account for no grout after last tile
-        const offsetX = (availableWidth - totalGridWidth) / 2;
-        const offsetY = (availableHeight - totalGridHeight) / 2;
+        // Start from center and build outward
+        const centerX = availableWidth / 2;
+        const centerY = availableHeight / 2;
         
-        setGridDimensions({ cols, rows });
-        
+        // Create center column first
         const tiles: StaticTile[] = [];
         let index = 0;
         
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < cols; col++) {
-            tiles.push({
-              id: `static-tile-${index}`,
-              gridX: col * tileSize + offsetX + 0.5, // Add 0.5px to center the grout
-              gridY: row * tileSize + offsetY + 0.5, // Add 0.5px to center the grout
-              rotation: Math.floor(Math.random() * 4) * 90,
-              imageIndex: Math.floor(Math.random() * images.length),
-            });
-            index++;
+        // Build center grout line (vertical)
+        const centerColIndex = Math.floor(maxCols / 2);
+        const centerGroutX = centerX - 0.5; // Center the grout line
+        
+        for (let row = 0; row < maxRows; row++) {
+          const y = row * tileSize + (centerY - (maxRows * tileSize) / 2) + 0.5;
+          
+          // Center tile (on the right side of center grout)
+          tiles.push({
+            id: `static-tile-${index}`,
+            gridX: centerGroutX + 0.5,
+            gridY: y,
+            rotation: Math.floor(Math.random() * 4) * 90,
+            imageIndex: Math.floor(Math.random() * images.length),
+          });
+          index++;
+          
+          // Build tiles to the right of center
+          for (let col = 1; col <= Math.floor(maxCols / 2); col++) {
+            if (centerColIndex + col < maxCols) {
+              tiles.push({
+                id: `static-tile-${index}`,
+                gridX: centerGroutX + 0.5 + (col * tileSize),
+                gridY: y,
+                rotation: Math.floor(Math.random() * 4) * 90,
+                imageIndex: Math.floor(Math.random() * images.length),
+              });
+              index++;
+            }
+          }
+          
+          // Build tiles to the left of center
+          for (let col = 1; col <= Math.floor(maxCols / 2); col++) {
+            if (centerColIndex - col >= 0) {
+              tiles.push({
+                id: `static-tile-${index}`,
+                gridX: centerGroutX + 0.5 - (col * tileSize),
+                gridY: y,
+                rotation: Math.floor(Math.random() * 4) * 90,
+                imageIndex: Math.floor(Math.random() * images.length),
+              });
+              index++;
+            }
           }
         }
+        
+        setGridDimensions({ cols: maxCols, rows: maxRows });
         setStaticTiles(tiles);
       }
     };
