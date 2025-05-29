@@ -33,7 +33,7 @@ const Landing = () => {
         setHeaderHeight(newHeaderHeight);
         
         // Generate grid immediately after getting header height
-        const tileSize = 50; // 50px tiles with no gaps
+        const tileSize = 52; // 50px tiles + 2px white grout
         const footerHeight = 104;
         const availableWidth = window.innerWidth;
         const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
@@ -162,8 +162,8 @@ const Landing = () => {
               draggedTile === tile.id ? 'opacity-50 scale-110' : ''
             }`}
             style={{
-              left: `${tile.gridX * 50}px`,
-              top: `${tile.gridY * 50}px`,
+              left: `${tile.gridX * 52}px`,
+              top: `${tile.gridY * 52}px`,
               width: '50px',
               height: '50px',
             }}
