@@ -41,9 +41,9 @@ const Landing = () => {
         const cols = Math.floor(availableWidth / tileSize);
         const rows = Math.floor(availableHeight / tileSize);
         
-        // Calculate offsets to center the grid
-        const totalGridWidth = cols * tileSize;
-        const totalGridHeight = rows * tileSize;
+        // Calculate offsets to center the grid with centered grout
+        const totalGridWidth = cols * tileSize - 1; // Subtract 1 to account for no grout after last tile
+        const totalGridHeight = rows * tileSize - 1; // Subtract 1 to account for no grout after last tile
         const offsetX = (availableWidth - totalGridWidth) / 2;
         const offsetY = (availableHeight - totalGridHeight) / 2;
         
@@ -56,8 +56,8 @@ const Landing = () => {
           for (let col = 0; col < cols; col++) {
             tiles.push({
               id: `static-tile-${index}`,
-              gridX: col * tileSize + offsetX,
-              gridY: row * tileSize + offsetY,
+              gridX: col * tileSize + offsetX + 0.5, // Add 0.5px to center the grout
+              gridY: row * tileSize + offsetY + 0.5, // Add 0.5px to center the grout
               rotation: Math.floor(Math.random() * 4) * 90,
               imageIndex: Math.floor(Math.random() * images.length),
             });
