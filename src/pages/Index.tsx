@@ -17,7 +17,7 @@ const Index = () => {
       <GridPuzzle />
       
       <Dialog open={showIntro} onOpenChange={setShowIntro}>
-        <DialogContent className="w-fit h-fit p-0 overflow-hidden max-w-[90vw] max-h-[90vh] border-0 shadow-none bg-transparent">
+        <DialogContent className="w-auto h-auto p-0 overflow-visible max-w-[90vw] max-h-[90vh] border-0 shadow-none bg-transparent">
           <DialogHeader className="sr-only">
             <DialogTitle>Game Instructions</DialogTitle>
             <DialogDescription>Learn how to play the game</DialogDescription>
