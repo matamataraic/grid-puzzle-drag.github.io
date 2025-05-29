@@ -1,66 +1,69 @@
-# Grid Puzzle Drag
+# Welcome to your Lovable project
 
-A web-based sliding puzzle game with drag and drop functionality. Arrange numbered tiles in order by sliding them into the empty space.
+## Project info
 
-## Features
+**URL**: https://lovable.dev/projects/883159c0-da69-4a3b-9bdc-296ea78189f7
 
-- **Drag and Drop**: Move tiles by dragging them to the empty space
-- **Touch Support**: Full mobile and tablet compatibility
-- **Multiple Difficulty Levels**: Choose from 3x3, 4x4, or 5x5 grids
-- **Game Statistics**: Track moves and time
-- **Keyboard Controls**: Use arrow keys to move tiles
-- **Responsive Design**: Works on all screen sizes
-- **Win Detection**: Automatic puzzle completion detection
-- **Shuffle Algorithm**: Smart shuffling ensures solvable puzzles
+## How can I edit this code?
 
-## How to Play
+There are several ways of editing your application.
 
-1. Click "New Game" to start a new puzzle
-2. The goal is to arrange numbers 1 to N-1 in order (where N is the total number of tiles)
-3. The bottom-right cell should remain empty
-4. Move tiles by:
-   - **Clicking**: Click on a tile adjacent to the empty space
-   - **Dragging**: Drag any tile to the empty space
-   - **Keyboard**: Use arrow keys to move tiles into the empty space
-   - **Touch**: On mobile devices, tap or drag tiles
+**Use Lovable**
 
-## Game Controls
+Simply visit the [Lovable Project](https://lovable.dev/projects/883159c0-da69-4a3b-9bdc-296ea78189f7) and start prompting.
 
-- **New Game**: Start a fresh puzzle
-- **Shuffle**: Randomly shuffle the current puzzle
-- **Solve**: Automatically solve the puzzle
-- **Grid Size**: Change difficulty (3x3, 4x4, 5x5)
+Changes made via Lovable will be committed automatically to this repo.
 
-## Technical Features
+**Use your preferred IDE**
 
-- Pure HTML5, CSS3, and JavaScript
-- No external dependencies required
-- Progressive Web App ready
-- Local storage for game state persistence
-- Smooth animations and transitions
-- Accessibility features included
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-## Browser Compatibility
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-- Chrome 50+
-- Firefox 50+
-- Safari 10+
-- Edge 12+
-- Mobile browsers (iOS Safari, Chrome Mobile)
+Follow these steps:
 
-## Installation
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-1. Clone or download this repository
-2. Open `index.html` in any modern web browser
-3. No build process or server required
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-## Development
+# Step 3: Install the necessary dependencies.
+npm i
 
-The project consists of three main files:
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
+```
 
-- `index.html` - Game structure and layout
-- `style.css` - Styling and animations
-- `script.js` - Game logic and interactions
+**Edit a file directly in GitHub**
 
-### Code Structure
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
+**Use GitHub Codespaces**
+
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
+
+## What technologies are used for this project?
+
+This project is built with .
+
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
+
+## How can I deploy this project?
+
+Simply open [Lovable](https://lovable.dev/projects/883159c0-da69-4a3b-9bdc-296ea78189f7) and click on Share -> Publish.
+
+## I want to use a custom domain - is that possible?
+
+We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
