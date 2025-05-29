@@ -224,10 +224,7 @@ export const GridPuzzle = () => {
       
       setTiles(prev => prev.filter(t => t.id !== tileId).concat([newTile]));
     } else {
-      // If dropped outside the grid, move the tile to the drop position
-      const dropX = event.clientX;
-      const dropY = event.clientY;
-      
+      // If dropped outside the grid, replace the original tile with a new random one
       if (draggedTile) {
         const newTile: TilePosition = {
           id: `tile-${Date.now()}`,
@@ -237,14 +234,7 @@ export const GridPuzzle = () => {
           imageIndex: Math.floor(Math.random() * images.length),
         };
         
-        const updatedTiles = tiles
-          .filter(t => t.id !== tileId)
-          .concat([
-            { ...draggedTile, x: dropX - 25, y: dropY - 25 },
-            newTile
-          ]);
-        
-        setTiles(updatedTiles);
+        setTiles(prev => prev.filter(t => t.id !== tileId).concat([newTile]));
       }
     }
   };
