@@ -35,8 +35,8 @@ const Landing = () => {
   useEffect(() => {
     // Generate static grid of tiles that fills the entire available space
     const generateStaticGrid = () => {
-      const tileSize = 52; // 50px tile + 2px white border
-      const footerHeight = 120; // Approximate footer height
+      const tileSize = 51; // 50px tile + 1px white border
+      const footerHeight = 104; // Actual footer height (py-8 = 32px top/bottom + content)
       const availableWidth = window.innerWidth;
       const availableHeight = window.innerHeight - headerHeight - footerHeight;
       
@@ -154,18 +154,19 @@ const Landing = () => {
       </div>
 
       {/* Static Grid Space - Full Width */}
-      <div className="w-full flex-1 relative bg-white p-1">
+      <div className="w-full flex-1 relative bg-black">
         {staticTiles.map((tile) => (
           <div
             key={tile.id}
-            className={`absolute cursor-pointer transition-all duration-200 hover:scale-105 border-2 border-white ${
+            className={`absolute cursor-pointer transition-all duration-200 hover:scale-105 border border-white ${
               draggedTile === tile.id ? 'opacity-50 scale-110' : ''
             }`}
             style={{
-              left: `${tile.gridX * 52 + 2}px`,
-              top: `${tile.gridY * 52 + 2}px`,
+              left: `${tile.gridX * 51}px`,
+              top: `${tile.gridY * 51}px`,
               width: '50px',
               height: '50px',
+              backgroundColor: 'black',
             }}
             draggable
             onDragStart={(e) => handleDragStart(e, tile.id)}
