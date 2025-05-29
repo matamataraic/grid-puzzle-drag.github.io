@@ -22,7 +22,7 @@ const Index = () => {
             <DialogTitle>Game Instructions</DialogTitle>
             <DialogDescription>Learn how to play the game</DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full pt-12">
             <img
               src="https://i.imgur.com/fubvRXX.jpeg"
               alt="Game Instructions"
