@@ -70,36 +70,123 @@ export const GridPuzzle = () => {
     }
   });
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
-        const newTiles: TilePosition[] = [];
-        const tileSize = 51;
-        const cols = Math.ceil(window.innerWidth / tileSize) + 2;
-        const currentHeight = document.documentElement.scrollHeight;
-        const additionalRows = 10;
-        
-        // Generate full-width rows of tiles when scrolling
-        for (let row = 0; row < additionalRows; row++) {
-          for (let col = 0; col < cols; col++) {
-            newTiles.push({
-              id: `tile-${Date.now()}-${row}-${col}`,
-              x: col * tileSize - tileSize,
-              y: currentHeight + (row * tileSize),
-              rotation: Math.floor(Math.random() * 4) * 90,
-              imageIndex: Math.floor(Math.random() * images.length),
-            });
-          }
-        }
-        
-        setTiles(prev => [...prev, ...newTiles]);
-        document.documentElement.style.minHeight = `${document.documentElement.scrollHeight + (additionalRows * tileSize)}px`;
-      }
-    };
+  // Mobile detection
+  const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+  // State for mobile zoom and pan
+  const [scale, setScale] = useState(1);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
+  const [lastTouch, setLastTouch] = useState({ x: 0, y: 0, scale: 1 });
+
+  useEffect(() => {
+    // Only add scroll functionality for desktop
+    if (!isMobile()) {
+      const handleScroll = () => {
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+          const newTiles: TilePosition[] = [];
+          const tileSize = 51;
+          const cols = Math.ceil(window.innerWidth / tileSize) + 2;
+          const currentHeight = document.documentElement.scrollHeight;
+          const additionalRows = 10;
+          
+          // Generate full-width rows of tiles when scrolling
+          for (let row = 0; row < additionalRows; row++) {
+            for (let col = 0; col < cols; col++) {
+              newTiles.push({
+                id: `tile-${Date.now()}-${row}-${col}`,
+                x: col * tileSize - tileSize,
+                y: currentHeight + (row * tileSize),
+                rotation: Math.floor(Math.random() * 4) * 90,
+                imageIndex: Math.floor(Math.random() * images.length),
+              });
+            }
+          }
+          
+          setTiles(prev => [...prev, ...newTiles]);
+          document.documentElement.style.minHeight = `${document.documentElement.scrollHeight + (additionalRows * tileSize)}px`;
+        }
+      };
+
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
   }, [images]);
+
+  // Mobile touch handlers for zoom and pan
+  const handleTouchStart = (e) => {
+    if (!isMobile()) return;
+    
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      setLastTouch({
+        x: (touch1.clientX + touch2.clientX) / 2,
+        y: (touch1.clientY + touch2.clientY) / 2,
+        scale: distance
+      });
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isMobile()) return;
+    e.preventDefault();
+    
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      const centerX = (touch1.clientX + touch2.clientX) / 2;
+      const centerY = (touch1.clientY + touch2.clientY) / 2;
+
+      // Scale
+      const newScale = Math.max(0.5, Math.min(3, scale * (distance / lastTouch.scale)));
+      setScale(newScale);
+
+      // Pan
+      const deltaX = centerX - lastTouch.x;
+      const deltaY = centerY - lastTouch.y;
+      setTranslateX(prev => prev + deltaX);
+      setTranslateY(prev => prev + deltaY);
+
+      setLastTouch({ x: centerX, y: centerY, scale: distance });
+
+      // Generate new tiles when zoomed out significantly
+      if (newScale < 0.8) {
+        generateMoreTilesForZoom();
+      }
+    }
+  };
+
+  const generateMoreTilesForZoom = () => {
+    const newTiles: TilePosition[] = [];
+    const tileSize = 51;
+    const extraCols = Math.ceil(window.innerWidth / tileSize) * 2;
+    const extraRows = Math.ceil(window.innerHeight / tileSize) * 2;
+    
+    for (let row = -extraRows; row < extraRows; row++) {
+      for (let col = -extraCols; col < extraCols; col++) {
+        newTiles.push({
+          id: `zoom-tile-${Date.now()}-${row}-${col}`,
+          x: col * tileSize,
+          y: row * tileSize,
+          rotation: Math.floor(Math.random() * 4) * 90,
+          imageIndex: Math.floor(Math.random() * images.length),
+        });
+      }
+    }
+    
+    setTiles(prev => [...prev, ...newTiles]);
+  };
 
   useEffect(() => {
     const counts = { S0: 0, S1: 0, S2: 0 };
@@ -471,7 +558,14 @@ export const GridPuzzle = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 w-full overflow-auto">
+    <div 
+      className={`min-h-screen bg-neutral-50 w-full ${isMobile() ? 'overflow-hidden' : 'overflow-auto'}`}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      style={{
+        touchAction: isMobile() ? 'none' : 'auto'
+      }}
+    >
       <div className="fixed top-0 left-0 right-0 h-[155px] bg-neutral-50 z-[5]" />
       <div className="fixed bottom-0 left-0 right-0 h-[195px] bg-neutral-50 z-[5]" />
 
@@ -584,30 +678,42 @@ export const GridPuzzle = () => {
           </div>
         )}
 
-        {tiles.map((tile) => (
-          <img
-            key={tile.id}
-            src={images[tile.imageIndex]}
-            className={cn(
-              'absolute w-[50px] h-[50px] cursor-move',
-              'hover:shadow-lg transition-shadow'
-            )}
-            style={{
-              left: tile.x,
-              top: tile.y,
-              transform: `rotate(${tile.rotation}deg)`,
-              zIndex: 1,
-              opacity: 0.08
-            }}
-            draggable
-            onClick={() => handleTileClick(tile.id)}
-            onDragEnd={(event) => {
-              const info = { point: { x: event.clientX, y: event.clientY } };
-              handleDragEnd(event, info, tile.id);
-            }}
-            onDoubleClick={() => handleDoubleClick(tile.id)}
-          />
-        ))}
+        <div
+          style={{
+            transform: isMobile() ? `translate(${translateX}px, ${translateY}px) scale(${scale})` : 'none',
+            transformOrigin: 'center center',
+            position: isMobile() ? 'fixed' : 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {tiles.map((tile) => (
+            <img
+              key={tile.id}
+              src={images[tile.imageIndex]}
+              className={cn(
+                'absolute w-[50px] h-[50px] cursor-move',
+                'hover:shadow-lg transition-shadow'
+              )}
+              style={{
+                left: tile.x,
+                top: tile.y,
+                transform: `rotate(${tile.rotation}deg)`,
+                zIndex: 1,
+                opacity: 0.08
+              }}
+              draggable
+              onClick={() => handleTileClick(tile.id)}
+              onDragEnd={(event) => {
+                const info = { point: { x: event.clientX, y: event.clientY } };
+                handleDragEnd(event, info, tile.id);
+              }}
+              onDoubleClick={() => handleDoubleClick(tile.id)}
+            />
+          ))}
+        </div>
 
         <div className="fixed bottom-[5px] left-0 right-0 flex flex-col items-center gap-1 pb-10 z-20">
           <div className="flex items-center gap-2">
