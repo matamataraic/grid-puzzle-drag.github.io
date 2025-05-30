@@ -74,19 +74,26 @@ export const GridPuzzle = () => {
     const handleScroll = () => {
       if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
         const newTiles: TilePosition[] = [];
-        for (let imageIndex = 0; imageIndex < images.length; imageIndex++) {
-          for (let i = 0; i < 10; i++) {
+        const tileSize = 51;
+        const cols = Math.ceil(window.innerWidth / tileSize) + 2;
+        const currentHeight = document.documentElement.scrollHeight;
+        const additionalRows = 10;
+        
+        // Generate full-width rows of tiles when scrolling
+        for (let row = 0; row < additionalRows; row++) {
+          for (let col = 0; col < cols; col++) {
             newTiles.push({
-              id: `tile-${Date.now()}-${imageIndex}-${i}`,
-              x: Math.random() * (window.innerWidth - 100),
-              y: Math.random() * (document.documentElement.scrollHeight + 500),
+              id: `tile-${Date.now()}-${row}-${col}`,
+              x: col * tileSize - tileSize,
+              y: currentHeight + (row * tileSize),
               rotation: Math.floor(Math.random() * 4) * 90,
-              imageIndex,
+              imageIndex: Math.floor(Math.random() * images.length),
             });
           }
         }
+        
         setTiles(prev => [...prev, ...newTiles]);
-        document.documentElement.style.minHeight = `${document.documentElement.scrollHeight + 500}px`;
+        document.documentElement.style.minHeight = `${document.documentElement.scrollHeight + (additionalRows * tileSize)}px`;
       }
     };
 
@@ -122,26 +129,23 @@ export const GridPuzzle = () => {
   const generateRandomTiles = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
     
-    const cols = Math.floor(window.innerWidth / 51);
-    const rows = Math.floor(window.innerHeight / 51);
-
-    const centerX = Math.floor(cols / 2);
-    const centerY = Math.floor(rows / 2);
+    const tileSize = 51; // 50px + 1px spacing
+    const cols = Math.ceil(window.innerWidth / tileSize) + 2; // Extra columns for edge coverage
+    const rows = Math.ceil(window.innerHeight / tileSize) + 4; // Extra rows for scrolling
 
     let index = 0;
 
-    for (let y = -centerY; y < centerY; y++) {
-      for (let x = -centerX; x < centerX; x++) {
-        if ((x + y) % 1 === 0) {
-          newTiles.push({
-            id: `tile-${index}`,
-            x: window.innerWidth / 2 + x * 51,
-            y: window.innerHeight / 2 + y * 51,
-            rotation: Math.floor(Math.random() * 4) * 90,
-            imageIndex: Math.floor(Math.random() * loadedImages.length),
-          });
-          index++;
-        }
+    // Generate tiles to cover the entire screen width from left to right
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        newTiles.push({
+          id: `tile-${index}`,
+          x: col * tileSize - tileSize, // Start slightly off-screen left
+          y: row * tileSize,
+          rotation: Math.floor(Math.random() * 4) * 90,
+          imageIndex: Math.floor(Math.random() * loadedImages.length),
+        });
+        index++;
       }
     }
 
