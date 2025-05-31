@@ -457,6 +457,30 @@ const Landing = () => {
         ))}
       </div>
 
+      {/* Floating tile during touch drag */}
+      {touchDragActive && draggedTileData && touchPosition && (
+        <div
+          className="fixed pointer-events-none z-50"
+          style={{
+            left: touchPosition.x - 30,
+            top: touchPosition.y - 30,
+            width: '60px',
+            height: '60px',
+            transform: 'scale(1.1)',
+            opacity: 0.8,
+          }}
+        >
+          <img
+            src={images[draggedTileData.imageIndex]}
+            alt="Dragging tile"
+            className="w-full h-full object-cover rounded"
+            style={{
+              transform: `rotate(${draggedTileData.rotation}deg)`,
+            }}
+          />
+        </div>
+      )}
+
       {/* Footer Button - Always visible */}
       <div className="w-full h-16 md:h-20 flex-shrink-0 bg-white flex items-center justify-center fixed bottom-0 left-0 right-0 z-50">
         <Button 
