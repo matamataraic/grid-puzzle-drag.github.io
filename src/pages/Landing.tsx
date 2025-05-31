@@ -100,8 +100,41 @@ const Landing = () => {
       }
     };
 
-    // Allow more time for page to fully load and stabilize before calculating
-    const timer = setTimeout(calculateAndGenerate, 800);
+    // Mobile-specific timing handling
+    const isMobile = window.innerWidth <= 768;
+    const delay = isMobile ? 1200 : 800;
+    
+    let stabilizationTimer: NodeJS.Timeout;
+    let measurementCount = 0;
+    let lastViewportHeight = 0;
+    
+    const checkViewportStabilization = () => {
+      const currentHeight = window.innerHeight;
+      
+      if (currentHeight === lastViewportHeight) {
+        measurementCount++;
+        if (measurementCount >= 3) {
+          // Viewport has been stable for 3 measurements, proceed
+          calculateAndGenerate();
+          return;
+        }
+      } else {
+        measurementCount = 0;
+        lastViewportHeight = currentHeight;
+      }
+      
+      stabilizationTimer = setTimeout(checkViewportStabilization, 100);
+    };
+    
+    // Use longer delay for mobile, then check viewport stabilization
+    const timer = setTimeout(() => {
+      if (isMobile) {
+        lastViewportHeight = window.innerHeight;
+        checkViewportStabilization();
+      } else {
+        calculateAndGenerate();
+      }
+    }, delay);
     
     // Regenerate on window resize with debounce
     let resizeTimer: NodeJS.Timeout;
@@ -117,6 +150,7 @@ const Landing = () => {
     
     return () => {
       clearTimeout(timer);
+      clearTimeout(stabilizationTimer);
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', calculateAndGenerate);
