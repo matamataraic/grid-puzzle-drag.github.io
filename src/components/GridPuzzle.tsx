@@ -80,6 +80,7 @@ export const GridPuzzle = () => {
   const [translateX, setTranslateX] = useState(0);
   const [translateY, setTranslateY] = useState(0);
   const [lastTouch, setLastTouch] = useState({ x: 0, y: 0, scale: 1 });
+  const [hasGeneratedZoomTiles, setHasGeneratedZoomTiles] = useState(false);
 
   useEffect(() => {
     // Only add scroll functionality for desktop
@@ -148,8 +149,8 @@ export const GridPuzzle = () => {
       const centerX = (touch1.clientX + touch2.clientX) / 2;
       const centerY = (touch1.clientY + touch2.clientY) / 2;
 
-      // Scale
-      const newScale = Math.max(0.5, Math.min(3, scale * (distance / lastTouch.scale)));
+      // Scale - limit zoom in to 1.0 (original size), allow zoom out to 0.3
+      const newScale = Math.max(0.3, Math.min(1.0, scale * (distance / lastTouch.scale)));
       setScale(newScale);
 
       // Pan
@@ -160,9 +161,17 @@ export const GridPuzzle = () => {
 
       setLastTouch({ x: centerX, y: centerY, scale: distance });
 
-      // Generate new tiles when zoomed out significantly
-      if (newScale < 0.8) {
+      // Generate new tiles when zoomed out significantly (only once)
+      if (newScale < 0.6 && !hasGeneratedZoomTiles) {
         generateMoreTilesForZoom();
+        setHasGeneratedZoomTiles(true);
+      }
+      
+      // Reset zoom tiles flag when zooming back in
+      if (newScale > 0.8 && hasGeneratedZoomTiles) {
+        setHasGeneratedZoomTiles(false);
+        // Clean up zoom tiles to prevent memory buildup
+        setTiles(prev => prev.filter(tile => !tile.id.includes('zoom-tile')));
       }
     }
   };
@@ -170,22 +179,41 @@ export const GridPuzzle = () => {
   const generateMoreTilesForZoom = () => {
     const newTiles: TilePosition[] = [];
     const tileSize = 51;
-    const extraCols = Math.ceil(window.innerWidth / tileSize) * 2;
-    const extraRows = Math.ceil(window.innerHeight / tileSize) * 2;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
     
-    for (let row = -extraRows; row < extraRows; row++) {
-      for (let col = -extraCols; col < extraCols; col++) {
-        newTiles.push({
-          id: `zoom-tile-${Date.now()}-${row}-${col}`,
-          x: col * tileSize,
-          y: row * tileSize,
-          rotation: Math.floor(Math.random() * 4) * 90,
-          imageIndex: Math.floor(Math.random() * images.length),
-        });
+    // Calculate grid bounds based on current view and scale
+    const viewportCols = Math.ceil(screenWidth / tileSize / scale) + 5;
+    const viewportRows = Math.ceil(screenHeight / tileSize / scale) + 5;
+    
+    // Generate tiles in a larger area around the current view
+    const startCol = Math.floor(-translateX / tileSize / scale) - viewportCols;
+    const endCol = Math.floor(-translateX / tileSize / scale) + viewportCols;
+    const startRow = Math.floor(-translateY / tileSize / scale) - viewportRows;
+    const endRow = Math.floor(-translateY / tileSize / scale) + viewportRows;
+    
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = startCol; col <= endCol; col++) {
+        // Check if tile already exists at this position
+        const existingTile = tiles.find(t => 
+          Math.abs(t.x - col * tileSize) < 1 && Math.abs(t.y - row * tileSize) < 1
+        );
+        
+        if (!existingTile) {
+          newTiles.push({
+            id: `zoom-tile-${Date.now()}-${row}-${col}-${Math.random()}`,
+            x: col * tileSize,
+            y: row * tileSize,
+            rotation: Math.floor(Math.random() * 4) * 90,
+            imageIndex: Math.floor(Math.random() * images.length),
+          });
+        }
       }
     }
     
-    setTiles(prev => [...prev, ...newTiles]);
+    if (newTiles.length > 0) {
+      setTiles(prev => [...prev, ...newTiles]);
+    }
   };
 
   useEffect(() => {
@@ -640,44 +668,6 @@ export const GridPuzzle = () => {
           </button>
         </div>
 
-        {isGridGenerated && (
-          <div
-            ref={gridRef}
-            className="relative border border-BLACK bg-white z-10 overflow-auto"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${horizontal}, 50px)`,
-              gridTemplateRows: `repeat(${vertical}, 50px)`,
-              position: 'fixed',
-              top: '175px',
-              maxHeight: 'calc(100vh - 350px)',
-              maxWidth: 'calc(100vw - 40px)',
-              borderWidth: '1px',
-              borderColor: 'white'
-            }}
-          >
-            {gridTiles.map((row, y) =>
-              row.map((tile, x) => (
-                <div
-                  key={`${y}-${x}`}
-                  className="border border-white w-[50px] h-[50px]"
-                  style={{ backgroundColor: 'BLACK' }}
-                  onDoubleClick={() => handleGridDoubleClick(y, x)}
-                >
-                  {tile && (
-                    <img
-                      src={images[tile.imageIndex]}
-                      className="w-full h-full object-cover cursor-pointer"
-                      style={{ transform: `rotate(${tile.rotation}deg)` }}
-                      onClick={() => handleRotate(y, x)}
-                    />
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        )}
-
         <div
           style={{
             transform: isMobile() ? `translate(${translateX}px, ${translateY}px) scale(${scale})` : 'none',
@@ -689,6 +679,7 @@ export const GridPuzzle = () => {
             height: '100%'
           }}
         >
+          {/* Background tiles */}
           {tiles.map((tile) => (
             <img
               key={tile.id}
@@ -713,6 +704,44 @@ export const GridPuzzle = () => {
               onDoubleClick={() => handleDoubleClick(tile.id)}
             />
           ))}
+
+          {/* Grid - positioned to be centered in viewport */}
+          {isGridGenerated && (
+            <div
+              ref={gridRef}
+              className="relative border border-BLACK bg-white z-10"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${horizontal}, 50px)`,
+                gridTemplateRows: `repeat(${vertical}, 50px)`,
+                position: 'absolute',
+                left: isMobile() ? `calc(50vw - ${(parseInt(horizontal) * 50) / 2}px)` : 'calc(50% - calc(var(--grid-width) / 2))',
+                top: isMobile() ? `calc(50vh - ${(parseInt(vertical) * 50) / 2}px)` : '175px',
+                borderWidth: '1px',
+                borderColor: 'white'
+              }}
+            >
+              {gridTiles.map((row, y) =>
+                row.map((tile, x) => (
+                  <div
+                    key={`${y}-${x}`}
+                    className="border border-white w-[50px] h-[50px]"
+                    style={{ backgroundColor: 'BLACK' }}
+                    onDoubleClick={() => handleGridDoubleClick(y, x)}
+                  >
+                    {tile && (
+                      <img
+                        src={images[tile.imageIndex]}
+                        className="w-full h-full object-cover cursor-pointer"
+                        style={{ transform: `rotate(${tile.rotation}deg)` }}
+                        onClick={() => handleRotate(y, x)}
+                      />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         <div className="fixed bottom-[5px] left-0 right-0 flex flex-col items-center gap-1 pb-10 z-20">
