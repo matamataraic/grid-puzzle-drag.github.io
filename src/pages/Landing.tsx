@@ -237,7 +237,7 @@ const Landing = () => {
     touchTimeoutRef.current = setTimeout(() => {
       setTouchDragActive(true);
       setDraggedTile(tileId);
-    }, 500);
+    }, 250);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
