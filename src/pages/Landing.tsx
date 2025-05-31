@@ -225,7 +225,7 @@ const Landing = () => {
   return (
     <div 
       className="h-screen flex flex-col overflow-hidden"
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'pan-none' }}
     >
       {/* Header Image - Responsive */}
       <div className="w-full flex-shrink-0 px-2 pt-2 md:px-4 md:pt-[20px]" ref={headerRef}>
@@ -250,7 +250,8 @@ const Landing = () => {
               width: window.innerWidth <= 768 ? '60px' : '50px',
               height: window.innerWidth <= 768 ? '60px' : '50px',
               border: '1px solid white',
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              touchAction: 'auto'
             }}
             draggable
             onDragStart={(e) => handleDragStart(e, tile.id)}
