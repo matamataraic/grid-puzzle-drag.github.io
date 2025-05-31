@@ -21,6 +21,7 @@ const Landing = () => {
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
   const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const tilesContainerRef = useRef<HTMLDivElement>(null);
   
   const images = [
     'https://i.imgur.com/RSSS8zt.png',
@@ -161,6 +162,90 @@ const Landing = () => {
       window.removeEventListener('orientationchange', calculateAndGenerate);
     };
   }, []);
+
+  // Add native touch event listeners for active touch handling
+  useEffect(() => {
+    if (!isTouchDevice || !tilesContainerRef.current) return;
+
+    const container = tilesContainerRef.current;
+
+    const handleNativeTouchStart = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      const tileId = target.closest('[data-tile-id]')?.getAttribute('data-tile-id');
+      if (tileId) {
+        console.log('Native touch start fired for tile:', tileId);
+        setTouchDragActive(true);
+        setDraggedTile(tileId);
+      }
+    };
+
+    const handleNativeTouchMove = (e: TouchEvent) => {
+      console.log('Native touch move fired, drag active:', touchDragActive, 'dragged tile:', draggedTile);
+      if (touchDragActive && draggedTile) {
+        e.preventDefault();
+      }
+    };
+
+    const handleNativeTouchEnd = (e: TouchEvent) => {
+      console.log('Native touch end fired, drag active:', touchDragActive, 'dragged tile:', draggedTile);
+      
+      if (!touchDragActive || !draggedTile) {
+        setTouchDragActive(false);
+        setDraggedTile(null);
+        return;
+      }
+
+      const touch = e.changedTouches[0];
+      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      console.log('Element below finger:', elementBelow);
+      
+      if (elementBelow && elementBelow.getAttribute('data-tile-id')) {
+        const targetTileId = elementBelow.getAttribute('data-tile-id');
+        console.log('Target tile ID:', targetTileId, 'Dragged tile ID:', draggedTile);
+        
+        if (targetTileId && targetTileId !== draggedTile) {
+          console.log('Performing tile swap');
+          setStaticTiles(prevTiles => {
+            const newTiles = [...prevTiles];
+            const draggedIndex = newTiles.findIndex(t => t.id === draggedTile);
+            const targetIndex = newTiles.findIndex(t => t.id === targetTileId);
+            
+            if (draggedIndex !== -1 && targetIndex !== -1) {
+              const draggedImageIndex = newTiles[draggedIndex].imageIndex;
+              const draggedRotation = newTiles[draggedIndex].rotation;
+              
+              newTiles[targetIndex] = {
+                ...newTiles[targetIndex],
+                imageIndex: draggedImageIndex,
+                rotation: draggedRotation,
+              };
+              
+              newTiles[draggedIndex] = {
+                ...newTiles[draggedIndex],
+                rotation: Math.floor(Math.random() * 4) * 90,
+                imageIndex: Math.floor(Math.random() * images.length),
+              };
+            }
+            
+            return newTiles;
+          });
+        }
+      }
+
+      setDraggedTile(null);
+      setTouchDragActive(false);
+    };
+
+    container.addEventListener('touchstart', handleNativeTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleNativeTouchMove, { passive: false });
+    container.addEventListener('touchend', handleNativeTouchEnd, { passive: false });
+
+    return () => {
+      container.removeEventListener('touchstart', handleNativeTouchStart);
+      container.removeEventListener('touchmove', handleNativeTouchMove);
+      container.removeEventListener('touchend', handleNativeTouchEnd);
+    };
+  }, [isTouchDevice, touchDragActive, draggedTile, images.length]);
 
   const handleDesignClick = () => {
     navigate("/design");
@@ -319,7 +404,10 @@ const Landing = () => {
       </div>
 
       {/* Static Grid Space - Flexible with bottom padding for footer */}
-      <div className="w-full flex-1 relative bg-white overflow-hidden min-h-0 pb-16 md:pb-20">
+      <div 
+        ref={tilesContainerRef}
+        className="w-full flex-1 relative bg-white overflow-hidden min-h-0 pb-16 md:pb-20"
+      >
         {staticTiles.map((tile) => (
           <div
             key={tile.id}
@@ -341,9 +429,7 @@ const Landing = () => {
             onDragOver={!isTouchDevice ? handleDragOver : undefined}
             onDrop={!isTouchDevice ? (e) => handleDrop(e, tile.id) : undefined}
             onDragEnd={!isTouchDevice ? handleDragEnd : undefined}
-            onTouchStart={isTouchDevice ? (e) => handleTouchStart(e, tile.id) : undefined}
-            onTouchMove={isTouchDevice ? handleTouchMove : undefined}
-            onTouchEnd={isTouchDevice ? handleTouchEnd : undefined}
+
             onClick={() => handleTileClick(tile.id)}
           >
             <img
