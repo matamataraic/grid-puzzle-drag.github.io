@@ -865,6 +865,7 @@ export const GridPuzzle = () => {
         </div>
 
         <div
+          ref={tilesContainerRef}
           style={{
             transform: isMobile() ? `translate(${translateX}px, ${translateY}px) scale(${scale})` : 'none',
             transformOrigin: 'center center',
@@ -879,6 +880,7 @@ export const GridPuzzle = () => {
           {tiles.map((tile) => (
             <img
               key={tile.id}
+              data-tile-id={tile.id}
               src={images[tile.imageIndex]}
               className={cn(
                 'absolute w-[50px] h-[50px] cursor-move',
@@ -905,6 +907,7 @@ export const GridPuzzle = () => {
           {isGridGenerated && (
             <div
               ref={gridRef}
+              data-grid-container="true"
               className="relative border border-BLACK bg-white z-10"
               style={{
                 display: 'grid',
@@ -939,6 +942,30 @@ export const GridPuzzle = () => {
             </div>
           )}
         </div>
+
+        {/* Floating tile during touch drag */}
+        {touchDragActive && draggedTileData && touchPosition && (
+          <div
+            className="fixed pointer-events-none z-50"
+            style={{
+              left: touchPosition.x - 25,
+              top: touchPosition.y - 25,
+              width: '50px',
+              height: '50px',
+              transform: 'scale(1.1)',
+              opacity: 0.8,
+            }}
+          >
+            <img
+              src={images[draggedTileData.imageIndex]}
+              alt="Dragging tile"
+              className="w-full h-full object-cover"
+              style={{
+                transform: `rotate(${draggedTileData.rotation}deg)`,
+              }}
+            />
+          </div>
+        )}
 
         <div className="fixed bottom-[5px] left-0 right-0 flex flex-col items-center gap-1 pb-10 z-20">
           <div className="flex items-center gap-2">
