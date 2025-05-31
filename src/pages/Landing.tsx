@@ -100,8 +100,16 @@ const Landing = () => {
       }
     };
 
-    // Single calculation after a delay to ensure DOM is ready
-    const timer = setTimeout(calculateAndGenerate, 200);
+    // Wait for header to load properly, then calculate grid
+    const checkAndGenerate = () => {
+      if (headerRef.current && headerRef.current.offsetHeight > 0) {
+        calculateAndGenerate();
+      } else {
+        setTimeout(checkAndGenerate, 100);
+      }
+    };
+    
+    checkAndGenerate();
     
     // Regenerate on window resize with debounce
     let resizeTimer: NodeJS.Timeout;
@@ -116,7 +124,6 @@ const Landing = () => {
     });
     
     return () => {
-      clearTimeout(timer);
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', calculateAndGenerate);
@@ -202,8 +209,8 @@ const Landing = () => {
         />
       </div>
 
-      {/* Static Grid Space - Flexible */}
-      <div className="w-full flex-1 relative bg-white overflow-hidden min-h-0">
+      {/* Static Grid Space - Flexible with bottom padding for footer */}
+      <div className="w-full flex-1 relative bg-white overflow-hidden min-h-0 pb-16 md:pb-20">
         {staticTiles.map((tile) => (
           <div
             key={tile.id}
@@ -239,10 +246,10 @@ const Landing = () => {
       </div>
 
       {/* Footer Button - Always visible */}
-      <div className="w-full flex-shrink-0 bg-white py-4 md:py-8 flex justify-center border-t border-gray-200 z-50 relative">
+      <div className="w-full h-16 md:h-20 flex-shrink-0 bg-white flex items-center justify-center border-t border-gray-200 fixed bottom-0 left-0 right-0 z-50">
         <Button 
           onClick={handleDesignClick}
-          className="px-8 py-3 md:px-8 md:py-4 text-lg md:text-lg font-semibold bg-black text-white hover:bg-gray-800 z-50"
+          className="px-8 py-3 text-lg font-semibold bg-black text-white hover:bg-gray-800"
         >
           design!
         </Button>
