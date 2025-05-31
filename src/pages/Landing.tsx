@@ -1,7 +1,6 @@
-
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 interface StaticTile {
   id: string;
@@ -18,6 +17,7 @@ const Landing = () => {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const gridAreaRef = useRef<HTMLDivElement>(null);
   
   const images = [
     'https://i.imgur.com/RSSS8zt.png',
@@ -25,98 +25,83 @@ const Landing = () => {
     'https://i.imgur.com/eRSAL3Z.png'
   ];
 
-  // Add state to track when header image is loaded
-  const [headerImageLoaded, setHeaderImageLoaded] = useState(false);
-
-  // Handle header image load
-  const handleHeaderImageLoad = () => {
-    setHeaderImageLoaded(true);
-  };
-
   useEffect(() => {
-    // Calculate header height and generate grid
+    // Calculate grid after layout is established
     const calculateAndGenerate = () => {
-      if (headerRef.current && headerImageLoaded) {
-        // Use requestAnimationFrame to ensure layout is complete
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            const newHeaderHeight = headerRef.current.offsetHeight;
-            setHeaderHeight(newHeaderHeight);
-            
-            // Generate grid after ensuring DOM layout is stable
-            const isMobile = window.innerWidth <= 768;
-            const tileSize = isMobile ? 61 : 51; // 60px tiles + 1px grout on mobile
-            const footerHeight = isMobile ? 64 : 80; // Fixed footer height
-            const availableWidth = window.innerWidth;
-            const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
-            
-            // Start from center and build outward to ensure center grout stays centered
-            const centerX = availableWidth / 2;
-            const centerY = availableHeight / 2;
-            
-            // Calculate how many tiles can fit on each side of center
-            const maxColsLeft = Math.floor(centerX / tileSize);
-            const maxColsRight = Math.floor(centerX / tileSize);
-            const maxRows = Math.floor(availableHeight / tileSize);
-            
-            // Create center column first
-            const tiles: StaticTile[] = [];
-            let index = 0;
-            
-            // Center grout line is exactly at centerX - 0.5
-            const centerGroutX = centerX - 0.5;
-            
-            // Calculate vertical start position to center the grid vertically
-            const totalGridHeight = maxRows * tileSize;
-            const startY = (availableHeight - totalGridHeight) / 2;
-            
-            for (let row = 0; row < maxRows; row++) {
-              const y = row * tileSize + startY + 0.5;
-              
-              // Build tiles to the right of center grout (starting immediately after grout)
-              for (let col = 0; col < maxColsRight; col++) {
-                const x = centerGroutX + 0.5 + (col * tileSize);
-                if (x + tileSize <= availableWidth) {
-                  tiles.push({
-                    id: `static-tile-${index}`,
-                    gridX: x,
-                    gridY: y,
-                    rotation: Math.floor(Math.random() * 4) * 90,
-                    imageIndex: Math.floor(Math.random() * images.length),
-                  });
-                  index++;
-                }
-              }
-              
-              // Build tiles to the left of center grout
-              for (let col = 1; col <= maxColsLeft; col++) {
-                const x = centerGroutX + 0.5 - (col * tileSize);
-                if (x >= 0) {
-                  tiles.push({
-                    id: `static-tile-${index}`,
-                    gridX: x,
-                    gridY: y,
-                    rotation: Math.floor(Math.random() * 4) * 90,
-                    imageIndex: Math.floor(Math.random() * images.length),
-                  });
-                  index++;
-                }
-              }
+      if (headerRef.current && gridAreaRef.current) {
+        // Measure the actual available space after header and footer are positioned
+        const gridAreaRect = gridAreaRef.current.getBoundingClientRect();
+        
+        const availableWidth = gridAreaRect.width;
+        const availableHeight = gridAreaRect.height;
+        
+        // Generate grid to fit the actual measured space
+        const isMobile = window.innerWidth <= 768;
+        const tileSize = isMobile ? 61 : 51; // 60px tiles + 1px grout on mobile
+        
+        // Start from center and build outward to ensure center grout stays centered
+        const centerX = availableWidth / 2;
+        const centerY = availableHeight / 2;
+        
+        // Calculate how many tiles can fit on each side of center
+        const maxColsLeft = Math.floor(centerX / tileSize);
+        const maxColsRight = Math.floor(centerX / tileSize);
+        const maxRows = Math.floor(availableHeight / tileSize);
+        
+        // Create center column first
+        const tiles: StaticTile[] = [];
+        let index = 0;
+        
+        // Center grout line is exactly at centerX - 0.5
+        const centerGroutX = centerX - 0.5;
+        
+        // Calculate vertical start position to center the grid vertically
+        const totalGridHeight = maxRows * tileSize;
+        const startY = (availableHeight - totalGridHeight) / 2;
+        
+        for (let row = 0; row < maxRows; row++) {
+          const y = row * tileSize + startY + 0.5;
+          
+          // Build tiles to the right of center grout (starting immediately after grout)
+          for (let col = 0; col < maxColsRight; col++) {
+            const x = centerGroutX + 0.5 + (col * tileSize);
+            if (x + tileSize <= availableWidth) {
+              tiles.push({
+                id: `static-tile-${index}`,
+                gridX: x,
+                gridY: y,
+                rotation: Math.floor(Math.random() * 4) * 90,
+                imageIndex: Math.floor(Math.random() * images.length),
+              });
+              index++;
             }
-            
-            const totalCols = maxColsLeft + maxColsRight;
-            
-            setGridDimensions({ cols: totalCols, rows: maxRows });
-            setStaticTiles(tiles);
-          });
-        });
+          }
+          
+          // Build tiles to the left of center grout
+          for (let col = 1; col <= maxColsLeft; col++) {
+            const x = centerGroutX + 0.5 - (col * tileSize);
+            if (x >= 0) {
+              tiles.push({
+                id: `static-tile-${index}`,
+                gridX: x,
+                gridY: y,
+                rotation: Math.floor(Math.random() * 4) * 90,
+                imageIndex: Math.floor(Math.random() * images.length),
+              });
+              index++;
+            }
+          }
+        }
+        
+        const totalCols = maxColsLeft + maxColsRight;
+        
+        setGridDimensions({ cols: totalCols, rows: maxRows });
+        setStaticTiles(tiles);
       }
     };
 
-    // Wait for header image to load, then calculate grid
-    if (headerImageLoaded) {
-      calculateAndGenerate();
-    }
+    // Calculate grid after a short delay to ensure layout is stable
+    const timer = setTimeout(calculateAndGenerate, 200);
     
     // Regenerate on window resize with debounce
     let resizeTimer: NodeJS.Timeout;
@@ -131,11 +116,12 @@ const Landing = () => {
     });
     
     return () => {
+      clearTimeout(timer);
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', calculateAndGenerate);
     };
-  }, [headerImageLoaded]);
+  }, []);
 
   const handleDesignClick = () => {
     navigate("/design");
@@ -203,22 +189,22 @@ const Landing = () => {
   };
 
   return (
-    <div 
-      className="h-screen flex flex-col overflow-hidden"
-      style={{ touchAction: 'none' }}
-    >
-      {/* Header Image - Responsive */}
-      <div className="w-full flex-shrink-0 px-2 pt-2 md:px-4 md:pt-[20px]" ref={headerRef}>
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* Header Image - Fixed Height */}
+      <div className="w-full flex-shrink-0 h-auto max-h-[15vh] md:max-h-[20vh] px-2 pt-2 md:px-4 md:pt-[20px]" ref={headerRef}>
         <img
           src="https://i.imgur.com/fubvRXX.jpeg"
           alt="Game Instructions"
-          className="w-full h-auto max-h-[15vh] md:max-h-none object-contain"
-          onLoad={handleHeaderImageLoad}
+          className="w-full h-full object-contain"
         />
       </div>
 
-      {/* Static Grid Space - Flexible with bottom padding for footer */}
-      <div className="w-full flex-1 relative bg-white overflow-hidden min-h-0 pb-16 md:pb-20">
+      {/* Grid Area - Flexible Space */}
+      <div 
+        ref={gridAreaRef}
+        className="flex-1 relative bg-white overflow-hidden"
+        style={{ touchAction: 'none' }}
+      >
         {staticTiles.map((tile) => (
           <div
             key={tile.id}
@@ -253,8 +239,8 @@ const Landing = () => {
         ))}
       </div>
 
-      {/* Footer Button - Always visible */}
-      <div className="w-full h-16 md:h-20 flex-shrink-0 bg-white flex items-center justify-center fixed bottom-0 left-0 right-0 z-50">
+      {/* Footer Button - Fixed Bottom */}
+      <div className="w-full h-16 md:h-20 flex-shrink-0 bg-white flex items-center justify-center border-t border-gray-200">
         <Button 
           onClick={handleDesignClick}
           className="px-8 py-3 text-lg font-semibold bg-black text-white hover:bg-gray-800"
