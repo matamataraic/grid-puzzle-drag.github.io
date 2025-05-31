@@ -37,7 +37,11 @@ const Landing = () => {
         const tileSize = isMobile ? 61 : 51; // 60px tiles + 1px grout on mobile
         const footerHeight = isMobile ? 64 : 80; // Fixed footer height
         const availableWidth = window.innerWidth;
-        const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
+        
+        // Chrome mobile-specific viewport handling
+        const isChromeMobile = isMobile && /Chrome/.test(navigator.userAgent) && /Mobile/.test(navigator.userAgent);
+        const viewportHeight = isChromeMobile ? window.screen.height : window.innerHeight;
+        const availableHeight = viewportHeight - newHeaderHeight - footerHeight;
         
         // Start from center and build outward to ensure center grout stays centered
         const centerX = availableWidth / 2;
