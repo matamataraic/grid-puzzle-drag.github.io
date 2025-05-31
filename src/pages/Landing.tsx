@@ -18,6 +18,7 @@ const Landing = () => {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
   const [touchDragActive, setTouchDragActive] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const touchStartTimeRef = useRef<number | null>(null);
   const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -36,9 +37,10 @@ const Landing = () => {
         setHeaderHeight(newHeaderHeight);
         
         // Generate grid immediately after getting header height
-        const isMobile = window.innerWidth <= 768;
-        const tileSize = isMobile ? 61 : 51; // 60px tiles + 1px grout on mobile
-        const footerHeight = isMobile ? 64 : 80; // Fixed footer height
+        const isMobileDevice = window.innerWidth <= 768 || 'ontouchstart' in window;
+        setIsMobile(isMobileDevice);
+        const tileSize = isMobileDevice ? 61 : 51; // 60px tiles + 1px grout on mobile
+        const footerHeight = isMobileDevice ? 64 : 80; // Fixed footer height
         const availableWidth = window.innerWidth;
         const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
         
@@ -226,7 +228,8 @@ const Landing = () => {
   };
 
   const handleTouchStart = (e: React.TouchEvent, tileId: string) => {
-    e.preventDefault();
+    if (!isMobile) return;
+    
     touchStartTimeRef.current = Date.now();
     setTouchDragActive(false);
     
@@ -350,14 +353,14 @@ const Landing = () => {
               touchAction: 'auto'
             }}
             data-tile-id={tile.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, tile.id)}
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, tile.id)}
-            onDragEnd={handleDragEnd}
-            onTouchStart={(e) => handleTouchStart(e, tile.id)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            draggable={!isMobile}
+            onDragStart={!isMobile ? (e) => handleDragStart(e, tile.id) : undefined}
+            onDragOver={!isMobile ? handleDragOver : undefined}
+            onDrop={!isMobile ? (e) => handleDrop(e, tile.id) : undefined}
+            onDragEnd={!isMobile ? handleDragEnd : undefined}
+            onTouchStart={isMobile ? (e) => handleTouchStart(e, tile.id) : undefined}
+            onTouchMove={isMobile ? handleTouchMove : undefined}
+            onTouchEnd={isMobile ? handleTouchEnd : undefined}
             onClick={() => handleTileClick(tile.id)}
           >
             <img
