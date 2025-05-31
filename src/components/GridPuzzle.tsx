@@ -967,7 +967,8 @@ export const GridPuzzle = () => {
                 gridTemplateColumns: `repeat(${horizontal}, 50px)`,
                 gridTemplateRows: `repeat(${vertical}, 50px)`,
                 position: 'absolute',
-                left: `calc(50vw - ${(parseInt(horizontal) * 50) / 2}px)`,
+                left: '50%',
+                transform: `translateX(-50%)`,
                 top: isMobile() ? `calc(50vh - ${(parseInt(vertical) * 50) / 2}px)` : '175px',
                 borderWidth: '1px',
                 borderColor: 'white'
