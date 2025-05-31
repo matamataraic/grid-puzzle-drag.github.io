@@ -490,6 +490,59 @@ export const GridPuzzle = () => {
     setImageCounts({ S0: 0, S1: 0, S2: 0 });
   };
 
+  const [desktopDraggedTile, setDesktopDraggedTile] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, tileId: string) => {
+    setDesktopDraggedTile(tileId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleTileDrop = (e: React.DragEvent, targetTileId: string) => {
+    e.preventDefault();
+    
+    if (!desktopDraggedTile || desktopDraggedTile === targetTileId) {
+      setDesktopDraggedTile(null);
+      return;
+    }
+
+    // Swap tiles on desktop drag and drop
+    setTiles(prevTiles => {
+      const newTiles = [...prevTiles];
+      const draggedIndex = newTiles.findIndex(t => t.id === desktopDraggedTile);
+      const targetIndex = newTiles.findIndex(t => t.id === targetTileId);
+      
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        const draggedImageIndex = newTiles[draggedIndex].imageIndex;
+        const draggedRotation = newTiles[draggedIndex].rotation;
+        
+        newTiles[targetIndex] = {
+          ...newTiles[targetIndex],
+          imageIndex: draggedImageIndex,
+          rotation: draggedRotation,
+        };
+        
+        newTiles[draggedIndex] = {
+          ...newTiles[draggedIndex],
+          rotation: Math.floor(Math.random() * 4) * 90,
+          imageIndex: Math.floor(Math.random() * images.length),
+        };
+      }
+      
+      return newTiles;
+    });
+
+    setDesktopDraggedTile(null);
+  };
+
+  const handleDesktopDragEnd = () => {
+    setDesktopDraggedTile(null);
+  };
+
   const handleDragEnd = (
     event: any,
     info: any,
@@ -895,10 +948,10 @@ export const GridPuzzle = () => {
               }}
               draggable
               onClick={() => handleTileClick(tile.id)}
-              onDragEnd={(event) => {
-                const info = { point: { x: event.clientX, y: event.clientY } };
-                handleDragEnd(event, info, tile.id);
-              }}
+              onDragStart={(e) => handleDragStart(e, tile.id)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleTileDrop(e, tile.id)}
+              onDragEnd={handleDesktopDragEnd}
               onDoubleClick={() => handleDoubleClick(tile.id)}
             />
           ))}
@@ -914,7 +967,7 @@ export const GridPuzzle = () => {
                 gridTemplateColumns: `repeat(${horizontal}, 50px)`,
                 gridTemplateRows: `repeat(${vertical}, 50px)`,
                 position: 'absolute',
-                left: isMobile() ? `calc(50vw - ${(parseInt(horizontal) * 50) / 2}px)` : 'calc(50% - calc(var(--grid-width) / 2))',
+                left: `calc(50vw - ${(parseInt(horizontal) * 50) / 2}px)`,
                 top: isMobile() ? `calc(50vh - ${(parseInt(vertical) * 50) / 2}px)` : '175px',
                 borderWidth: '1px',
                 borderColor: 'white'
