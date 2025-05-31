@@ -38,6 +38,7 @@ export const GridPuzzle = () => {
   const [gridTiles, setGridTiles] = useState<(TilePosition | null)[][]>([]);
   const [images, setImages] = useState<string[]>([]);
   const gridRef = useRef<HTMLDivElement>(null);
+  const tilesContainerRef = useRef<HTMLDivElement>(null);
   const [imageCounts, setImageCounts] = useState({ S0: 0, S1: 0, S2: 0 });
   const [showInfo, setShowInfo] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
@@ -81,6 +82,19 @@ export const GridPuzzle = () => {
   const [translateY, setTranslateY] = useState(0);
   const [lastTouch, setLastTouch] = useState({ x: 0, y: 0, scale: 1 });
   const [hasGeneratedZoomTiles, setHasGeneratedZoomTiles] = useState(false);
+  
+  // Touch drag states
+  const [touchDragActive, setTouchDragActive] = useState(false);
+  const [draggedTile, setDraggedTile] = useState<string | null>(null);
+  const [touchPosition, setTouchPosition] = useState<{ x: number; y: number } | null>(null);
+  const [draggedTileData, setDraggedTileData] = useState<TilePosition | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    // Detect touch device
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    setIsTouchDevice(isTouch);
+  }, []);
 
   useEffect(() => {
     // Only add scroll functionality for desktop
@@ -120,7 +134,7 @@ export const GridPuzzle = () => {
   const handleTouchStart = (e) => {
     if (!isMobile()) return;
     
-    // Only allow two-finger interactions
+    // Two-finger interactions for zoom/pan
     if (e.touches.length === 2) {
       e.preventDefault();
       const touch1 = e.touches[0];
@@ -134,20 +148,16 @@ export const GridPuzzle = () => {
         y: (touch1.clientY + touch2.clientY) / 2,
         scale: distance
       });
-    } else if (e.touches.length === 1) {
-      // Prevent single finger scrolling
-      e.preventDefault();
     }
+    // Single finger interactions are handled by tile touch events
   };
 
   const handleTouchMove = (e) => {
     if (!isMobile()) return;
     
-    // Always prevent default to stop any scrolling
-    e.preventDefault();
-    
-    // Only process two-finger interactions
+    // Only process two-finger interactions for zoom/pan
     if (e.touches.length === 2) {
+      e.preventDefault();
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.sqrt(
@@ -275,6 +285,176 @@ export const GridPuzzle = () => {
     setTiles(newTiles);
   };
 
+  // Native touch event listeners for background tiles
+  useEffect(() => {
+    if (!isTouchDevice || !tilesContainerRef.current) return;
+
+    const container = tilesContainerRef.current;
+
+    const handleNativeTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return; // Only single finger
+      
+      const target = e.target as HTMLElement;
+      const tileElement = target.closest('[data-tile-id]');
+      const tileId = tileElement?.getAttribute('data-tile-id');
+      
+      if (tileId && !touchDragActive) {
+        const tileData = tiles.find(t => t.id === tileId);
+        if (tileData) {
+          setTouchDragActive(true);
+          setDraggedTile(tileId);
+          setDraggedTileData(tileData);
+          const touch = e.touches[0];
+          setTouchPosition({ x: touch.clientX, y: touch.clientY });
+        }
+      }
+    };
+
+    const handleNativeTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return; // Only single finger
+      
+      if (touchDragActive && draggedTile) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        setTouchPosition({ x: touch.clientX, y: touch.clientY });
+      }
+    };
+
+    const handleNativeTouchEnd = (e: TouchEvent) => {
+      if (!touchDragActive || !draggedTile) {
+        setTouchDragActive(false);
+        setDraggedTile(null);
+        setTouchPosition(null);
+        setDraggedTileData(null);
+        return;
+      }
+
+      const touch = e.changedTouches[0];
+      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      
+      // Check if dropped on background tile
+      const backgroundTileContainer = elementBelow?.closest('[data-tile-id]');
+      const backgroundTileId = backgroundTileContainer?.getAttribute('data-tile-id');
+      
+      // Check if dropped on grid
+      const gridContainer = elementBelow?.closest('[data-grid-container]');
+      
+      if (backgroundTileId && backgroundTileId !== draggedTile) {
+        // Swap with another background tile
+        setTiles(prevTiles => {
+          const newTiles = [...prevTiles];
+          const draggedIndex = newTiles.findIndex(t => t.id === draggedTile);
+          const targetIndex = newTiles.findIndex(t => t.id === backgroundTileId);
+          
+          if (draggedIndex !== -1 && targetIndex !== -1) {
+            const draggedImageIndex = newTiles[draggedIndex].imageIndex;
+            const draggedRotation = newTiles[draggedIndex].rotation;
+            
+            newTiles[targetIndex] = {
+              ...newTiles[targetIndex],
+              imageIndex: draggedImageIndex,
+              rotation: draggedRotation,
+            };
+            
+            newTiles[draggedIndex] = {
+              ...newTiles[draggedIndex],
+              rotation: Math.floor(Math.random() * 4) * 90,
+              imageIndex: Math.floor(Math.random() * images.length),
+            };
+          }
+          
+          return newTiles;
+        });
+      } else if (gridContainer && gridRef.current) {
+        // Drop on grid - use existing grid drop logic
+        const gridRect = gridRef.current.getBoundingClientRect();
+        const x = touch.clientX - gridRect.left;
+        const y = touch.clientY - gridRect.top;
+        const cellX = Math.floor(x / 50);
+        const cellY = Math.floor(y / 50);
+        
+        const draggedTileData = tiles.find(t => t.id === draggedTile);
+        
+        if (
+          draggedTileData &&
+          cellX >= 0 &&
+          cellX < parseInt(horizontal) &&
+          cellY >= 0 &&
+          cellY < parseInt(vertical)
+        ) {
+          const updatedGrid = [...gridTiles];
+          updatedGrid[cellY][cellX] = { 
+            id: `grid-tile-${cellY}-${cellX}`,
+            x: cellX * 50,
+            y: cellY * 50,
+            rotation: draggedTileData.rotation,
+            imageIndex: draggedTileData.imageIndex
+          };
+          
+          setGridTiles(updatedGrid);
+          
+          // Replace with new random tile
+          const newTile: TilePosition = {
+            id: `tile-${Date.now()}`,
+            x: draggedTileData.x,
+            y: draggedTileData.y,
+            rotation: Math.floor(Math.random() * 4) * 90,
+            imageIndex: Math.floor(Math.random() * images.length),
+          };
+          
+          setTiles(prev => prev.filter(t => t.id !== draggedTile).concat([newTile]));
+        } else {
+          // Replace with new random tile if dropped outside valid grid
+          const draggedTileData = tiles.find(t => t.id === draggedTile);
+          if (draggedTileData) {
+            const newTile: TilePosition = {
+              id: `tile-${Date.now()}`,
+              x: draggedTileData.x,
+              y: draggedTileData.y,
+              rotation: Math.floor(Math.random() * 4) * 90,
+              imageIndex: Math.floor(Math.random() * images.length),
+            };
+            
+            setTiles(prev => prev.filter(t => t.id !== draggedTile).concat([newTile]));
+          }
+        }
+      }
+
+      setDraggedTile(null);
+      setTouchDragActive(false);
+      setTouchPosition(null);
+      setDraggedTileData(null);
+    };
+
+    container.addEventListener('touchstart', handleNativeTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleNativeTouchMove, { passive: false });
+    container.addEventListener('touchend', handleNativeTouchEnd, { passive: false });
+
+    return () => {
+      container.removeEventListener('touchstart', handleNativeTouchStart);
+      container.removeEventListener('touchmove', handleNativeTouchMove);
+      container.removeEventListener('touchend', handleNativeTouchEnd);
+    };
+  }, [isTouchDevice, touchDragActive, draggedTile, tiles, gridTiles, horizontal, vertical, images.length]);
+
+  const centerGridOnScreen = (cols: number, rows: number) => {
+    if (isMobile()) {
+      const gridWidth = cols * 50;
+      const gridHeight = rows * 50;
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      
+      // Calculate center position
+      const centerX = (screenWidth - gridWidth) / 2;
+      const centerY = (screenHeight - gridHeight) / 2;
+      
+      // Set translation to center the grid
+      setTranslateX(-centerX);
+      setTranslateY(-centerY);
+      setScale(1);
+    }
+  };
+
   const handleStart = () => {
     const h = parseInt(horizontal);
     const v = parseInt(vertical);
@@ -295,6 +475,9 @@ export const GridPuzzle = () => {
       const newGrid = Array(v).fill(null).map(() => Array(h).fill(null));
       setGridTiles(newGrid);
     }
+    
+    // Center the grid on screen
+    centerGridOnScreen(h, v);
     
     setIsGridGenerated(true);
   };
@@ -450,6 +633,9 @@ export const GridPuzzle = () => {
     
     setGridTiles(newGrid);
     setIsGridGenerated(true);
+    
+    // Center the grid on screen
+    centerGridOnScreen(randomH, randomV);
   };
 
   const handleSave = async () => {
