@@ -17,6 +17,9 @@ const Landing = () => {
   const [gridDimensions, setGridDimensions] = useState({ cols: 0, rows: 0 });
   const [headerHeight, setHeaderHeight] = useState(0);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
+  const [touchStartTime, setTouchStartTime] = useState<number | null>(null);
+  const [touchDragActive, setTouchDragActive] = useState<boolean>(false);
+  const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   
   const images = [
@@ -222,6 +225,88 @@ const Landing = () => {
     setDraggedTile(null);
   };
 
+  const handleTouchStart = (e: React.TouchEvent, tileId: string) => {
+    const touch = e.touches[0];
+    setTouchStartTime(Date.now());
+    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    setTouchDragActive(false);
+    
+    // Set a delay for drag activation
+    setTimeout(() => {
+      if (touchStartTime && Date.now() - touchStartTime >= 500) {
+        setTouchDragActive(true);
+        setDraggedTile(tileId);
+      }
+    }, 500);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchDragActive || !draggedTile) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    
+    // Find the element under the touch point
+    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (elementBelow && elementBelow.getAttribute('data-tile-id')) {
+      const targetTileId = elementBelow.getAttribute('data-tile-id');
+      if (targetTileId && targetTileId !== draggedTile) {
+        // Visual feedback could be added here
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchDragActive || !draggedTile) {
+      setTouchStartTime(null);
+      setTouchStartPos(null);
+      setTouchDragActive(false);
+      return;
+    }
+
+    const touch = e.changedTouches[0];
+    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    if (elementBelow && elementBelow.getAttribute('data-tile-id')) {
+      const targetTileId = elementBelow.getAttribute('data-tile-id');
+      if (targetTileId && targetTileId !== draggedTile) {
+        // Perform the swap using the same logic as handleDrop
+        setStaticTiles(prevTiles => {
+          const newTiles = [...prevTiles];
+          const draggedIndex = newTiles.findIndex(t => t.id === draggedTile);
+          const targetIndex = newTiles.findIndex(t => t.id === targetTileId);
+          
+          if (draggedIndex !== -1 && targetIndex !== -1) {
+            // Store the dragged tile's image properties
+            const draggedImageIndex = newTiles[draggedIndex].imageIndex;
+            const draggedRotation = newTiles[draggedIndex].rotation;
+            
+            // Move the dragged tile's image to the target position
+            newTiles[targetIndex] = {
+              ...newTiles[targetIndex],
+              imageIndex: draggedImageIndex,
+              rotation: draggedRotation,
+            };
+            
+            // Replace the dragged tile with a new random one
+            newTiles[draggedIndex] = {
+              ...newTiles[draggedIndex],
+              rotation: Math.floor(Math.random() * 4) * 90,
+              imageIndex: Math.floor(Math.random() * images.length),
+            };
+          }
+          
+          return newTiles;
+        });
+      }
+    }
+
+    setDraggedTile(null);
+    setTouchStartTime(null);
+    setTouchStartPos(null);
+    setTouchDragActive(false);
+  };
+
   return (
     <div 
       className="h-screen flex flex-col overflow-hidden"
@@ -253,11 +338,15 @@ const Landing = () => {
               boxSizing: 'border-box',
               touchAction: 'auto'
             }}
+            data-tile-id={tile.id}
             draggable
             onDragStart={(e) => handleDragStart(e, tile.id)}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, tile.id)}
             onDragEnd={handleDragEnd}
+            onTouchStart={(e) => handleTouchStart(e, tile.id)}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             onClick={() => handleTileClick(tile.id)}
           >
             <img
