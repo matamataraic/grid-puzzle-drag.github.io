@@ -550,9 +550,9 @@ export const GridPuzzle = () => {
   ) => {
     if (!gridRef.current) return;
 
-    const gridRect = gridRef.current.getBoundingClientRect();
-    const x = event.clientX - gridRect.left;
-    const y = event.clientY - gridRect.top;
+    const gridBounds = gridRef.current.getBoundingClientRect();
+    const x = event.clientX - gridBounds.left;
+    const y = event.clientY - gridBounds.top;
 
     const cellX = Math.floor(x / 50);
     const cellY = Math.floor(y / 50);
@@ -668,7 +668,10 @@ export const GridPuzzle = () => {
     setGridTiles(newGrid);
   };
 
-  const handleRandom = () => {
+  const handleRandom = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const randomH = Math.floor(Math.random() * 9) + 2;
     const randomV = Math.floor(Math.random() * 9) + 2;
     setHorizontal(randomH.toString());
@@ -959,25 +962,19 @@ export const GridPuzzle = () => {
           {/* Grid - positioned to be centered in viewport */}
           {isGridGenerated && (
             <div
-              className="absolute z-10"
+              ref={gridRef}
+              data-grid-container="true"
+              className="absolute border border-BLACK bg-white z-10"
               style={{
-                left: '50%',
-                transform: 'translateX(-50%)',
-                top: isMobile() ? `calc(50vh - ${(parseInt(vertical) * 50) / 2}px)` : '175px',
+                display: 'grid',
+                gridTemplateColumns: `repeat(${horizontal}, 50px)`,
+                gridTemplateRows: `repeat(${vertical}, 50px)`,
+                left: `${(window.innerWidth - (parseInt(horizontal) * 50)) / 2}px`,
+                top: isMobile() ? `${(window.innerHeight - (parseInt(vertical) * 50)) / 2}px` : '175px',
+                borderWidth: '1px',
+                borderColor: 'white'
               }}
             >
-              <div
-                ref={gridRef}
-                data-grid-container="true"
-                className="relative border border-BLACK bg-white"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: `repeat(${horizontal}, 50px)`,
-                  gridTemplateRows: `repeat(${vertical}, 50px)`,
-                  borderWidth: '1px',
-                  borderColor: 'white'
-                }}
-              >
               {gridTiles.map((row, y) =>
                 row.map((tile, x) => (
                   <div
@@ -997,7 +994,6 @@ export const GridPuzzle = () => {
                   </div>
                 ))
               )}
-              </div>
             </div>
           )}
         </div>
