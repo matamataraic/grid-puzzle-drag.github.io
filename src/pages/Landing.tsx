@@ -229,18 +229,8 @@ const Landing = () => {
 
   // Touch event handlers for mobile
   const handleTouchStart = (e: React.TouchEvent, tileId: string) => {
-    setTouchDragActive(false);
-    
-    // Clear any existing timeout
-    if (touchTimeoutRef.current) {
-      clearTimeout(touchTimeoutRef.current);
-    }
-    
-    // Set a delay for drag activation
-    touchTimeoutRef.current = setTimeout(() => {
-      setTouchDragActive(true);
-      setDraggedTile(tileId);
-    }, 250);
+    setTouchDragActive(true);
+    setDraggedTile(tileId);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
