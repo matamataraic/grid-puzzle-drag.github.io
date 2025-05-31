@@ -17,9 +17,6 @@ const Landing = () => {
   const [gridDimensions, setGridDimensions] = useState({ cols: 0, rows: 0 });
   const [headerHeight, setHeaderHeight] = useState(0);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
-  const [touchStartPos, setTouchStartPos] = useState<{x: number, y: number} | null>(null);
-  const [touchHoldTimer, setTouchHoldTimer] = useState<NodeJS.Timeout | null>(null);
-  const [isDragMode, setIsDragMode] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
   
   const images = [
@@ -40,11 +37,7 @@ const Landing = () => {
         const tileSize = isMobile ? 61 : 51; // 60px tiles + 1px grout on mobile
         const footerHeight = isMobile ? 64 : 80; // Fixed footer height
         const availableWidth = window.innerWidth;
-        
-        // Chrome mobile-specific viewport handling
-        const isChromeMobile = isMobile && /Chrome/.test(navigator.userAgent) && /Mobile/.test(navigator.userAgent);
-        const viewportHeight = isChromeMobile ? window.screen.height : window.innerHeight;
-        const availableHeight = viewportHeight - newHeaderHeight - footerHeight;
+        const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
         
         // Start from center and build outward to ensure center grout stays centered
         const centerX = availableWidth / 2;
@@ -229,69 +222,6 @@ const Landing = () => {
     setDraggedTile(null);
   };
 
-  // Touch event handlers for mobile drag and drop
-  const handleTouchStart = (e: React.TouchEvent, tileId: string) => {
-    const touch = e.touches[0];
-    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
-    
-    // Start timer for touch and hold detection
-    const timer = setTimeout(() => {
-      setDraggedTile(tileId);
-      setIsDragMode(true);
-    }, 500);
-    
-    setTouchHoldTimer(timer);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragMode) return;
-    e.preventDefault();
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent, targetTileId?: string) => {
-    // Clear the hold timer
-    if (touchHoldTimer) {
-      clearTimeout(touchHoldTimer);
-      setTouchHoldTimer(null);
-    }
-
-    if (isDragMode && draggedTile && targetTileId && draggedTile !== targetTileId) {
-      // Perform the tile swap
-      setStaticTiles(prev => {
-        const newTiles = [...prev];
-        const draggedIndex = newTiles.findIndex(t => t.id === draggedTile);
-        const targetIndex = newTiles.findIndex(t => t.id === targetTileId);
-        
-        if (draggedIndex !== -1 && targetIndex !== -1) {
-          // Store the dragged tile's image properties
-          const draggedImageIndex = newTiles[draggedIndex].imageIndex;
-          const draggedRotation = newTiles[draggedIndex].rotation;
-          
-          // Move the dragged tile's image to the target position
-          newTiles[targetIndex] = {
-            ...newTiles[targetIndex],
-            imageIndex: draggedImageIndex,
-            rotation: draggedRotation,
-          };
-          
-          // Replace the dragged tile with a new random one
-          newTiles[draggedIndex] = {
-            ...newTiles[draggedIndex],
-            rotation: Math.floor(Math.random() * 4) * 90,
-            imageIndex: Math.floor(Math.random() * images.length),
-          };
-        }
-        
-        return newTiles;
-      });
-    }
-
-    // Reset drag state
-    setDraggedTile(null);
-    setIsDragMode(false);
-    setTouchStartPos(null);
-  };
-
   return (
     <div 
       className="h-screen flex flex-col overflow-hidden"
@@ -313,7 +243,7 @@ const Landing = () => {
             key={tile.id}
             className={`absolute cursor-pointer transition-all duration-200 hover:scale-105 ${
               draggedTile === tile.id ? 'opacity-50 scale-110' : ''
-            } ${isDragMode ? 'touch-none' : ''}`}
+            }`}
             style={{
               left: `${tile.gridX}px`,
               top: `${tile.gridY}px`,
@@ -327,9 +257,6 @@ const Landing = () => {
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, tile.id)}
             onDragEnd={handleDragEnd}
-            onTouchStart={(e) => handleTouchStart(e, tile.id)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={(e) => handleTouchEnd(e, tile.id)}
             onClick={() => handleTileClick(tile.id)}
           >
             <img
