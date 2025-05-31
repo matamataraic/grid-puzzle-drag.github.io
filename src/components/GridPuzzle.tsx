@@ -441,8 +441,10 @@ export const GridPuzzle = () => {
     if (isMobile()) {
       const gridWidth = cols * 50;
       const gridHeight = rows * 50;
-      const screenWidth = window.innerWidth;
-      const screenHeight = window.innerHeight;
+      
+      // Use visual viewport for mobile browsers to handle browser UI correctly
+      const screenWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+      const screenHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
       
       // Calculate center position
       const centerX = (screenWidth - gridWidth) / 2;
@@ -540,6 +542,49 @@ export const GridPuzzle = () => {
   };
 
   const handleDesktopDragEnd = () => {
+    setDesktopDraggedTile(null);
+  };
+
+  // Handle dropping background tiles onto grid cells
+  const handleGridCellDrop = (e: React.DragEvent, gridX: number, gridY: number) => {
+    e.preventDefault();
+    
+    if (!desktopDraggedTile) return;
+    
+    const draggedTile = tiles.find(t => t.id === desktopDraggedTile);
+    if (!draggedTile) {
+      setDesktopDraggedTile(null);
+      return;
+    }
+    
+    // Place the dragged tile in the grid cell
+    const newGridTiles = [...gridTiles];
+    newGridTiles[gridY][gridX] = {
+      id: `grid-tile-${Date.now()}-${Math.random()}`,
+      x: gridX * 50,
+      y: gridY * 50,
+      rotation: draggedTile.rotation,
+      imageIndex: draggedTile.imageIndex
+    };
+    
+    setGridTiles(newGridTiles);
+    
+    // Generate new background tile
+    setTiles(prevTiles => {
+      const newTiles = [...prevTiles];
+      const draggedIndex = newTiles.findIndex(t => t.id === desktopDraggedTile);
+      
+      if (draggedIndex !== -1) {
+        newTiles[draggedIndex] = {
+          ...newTiles[draggedIndex],
+          rotation: Math.floor(Math.random() * 4) * 90,
+          imageIndex: Math.floor(Math.random() * images.length),
+        };
+      }
+      
+      return newTiles;
+    });
+    
     setDesktopDraggedTile(null);
   };
 
@@ -668,9 +713,11 @@ export const GridPuzzle = () => {
     setGridTiles(newGrid);
   };
 
-  const handleRandom = (e: React.MouseEvent) => {
+  const handleRandom = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+
     
     const randomH = Math.floor(Math.random() * 9) + 2;
     const randomV = Math.floor(Math.random() * 9) + 2;
@@ -982,6 +1029,8 @@ export const GridPuzzle = () => {
                     className="border border-white w-[50px] h-[50px]"
                     style={{ backgroundColor: 'BLACK' }}
                     onDoubleClick={() => handleGridDoubleClick(y, x)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleGridCellDrop(e, x, y)}
                   >
                     {tile && (
                       <img
