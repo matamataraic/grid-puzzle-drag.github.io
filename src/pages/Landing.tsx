@@ -33,8 +33,9 @@ const Landing = () => {
         setHeaderHeight(newHeaderHeight);
         
         // Generate grid immediately after getting header height
-        const tileSize = 51; // 50px tiles + 1px white grout
-        const footerHeight = 104;
+        const isMobile = window.innerWidth <= 768;
+        const tileSize = isMobile ? 30 : 51; // Smaller tiles on mobile
+        const footerHeight = isMobile ? 80 : 104; // Smaller footer on mobile
         const availableWidth = window.innerWidth;
         const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
         
@@ -105,13 +106,23 @@ const Landing = () => {
     // Also run after a small delay to ensure DOM is ready
     const timer = setTimeout(calculateAndGenerate, 100);
     
-    // Regenerate on window resize
-    const handleResize = () => calculateAndGenerate();
+    // Regenerate on window resize with debounce
+    let resizeTimer: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(calculateAndGenerate, 150);
+    };
+    
     window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(calculateAndGenerate, 200);
+    });
     
     return () => {
       clearTimeout(timer);
+      clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', calculateAndGenerate);
     };
   }, []);
 
@@ -181,18 +192,18 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header Image - Full Width */}
-      <div className="w-full pt-[20px]" ref={headerRef}>
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* Header Image - Responsive */}
+      <div className="w-full flex-shrink-0 px-4 pt-4 md:pt-[20px]" ref={headerRef}>
         <img
           src="https://i.imgur.com/fubvRXX.jpeg"
           alt="Game Instructions"
-          className="w-full h-auto block object-contain"
+          className="w-full h-auto max-h-[20vh] md:max-h-none object-contain"
         />
       </div>
 
-      {/* Static Grid Space - Full Width */}
-      <div className="w-full flex-1 relative bg-white overflow-hidden">
+      {/* Static Grid Space - Flexible */}
+      <div className="w-full flex-1 relative bg-white overflow-hidden min-h-0">
         {staticTiles.map((tile) => (
           <div
             key={tile.id}
@@ -202,8 +213,8 @@ const Landing = () => {
             style={{
               left: `${tile.gridX}px`,
               top: `${tile.gridY}px`,
-              width: '50px',
-              height: '50px',
+              width: window.innerWidth <= 768 ? '30px' : '50px',
+              height: window.innerWidth <= 768 ? '30px' : '50px',
             }}
             draggable
             onDragStart={(e) => handleDragStart(e, tile.id)}
@@ -225,11 +236,11 @@ const Landing = () => {
         ))}
       </div>
 
-      {/* Footer Button - Blank Strip */}
-      <div className="w-full bg-background py-8 flex justify-center">
+      {/* Footer Button - Responsive */}
+      <div className="w-full flex-shrink-0 bg-background py-4 md:py-8 flex justify-center">
         <Button 
           onClick={handleDesignClick}
-          className="px-8 py-4 text-lg font-semibold"
+          className="px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-semibold"
         >
           design!
         </Button>
