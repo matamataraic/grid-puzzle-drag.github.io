@@ -17,10 +17,10 @@ const Landing = () => {
   const [gridDimensions, setGridDimensions] = useState({ cols: 0, rows: 0 });
   const [headerHeight, setHeaderHeight] = useState(0);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
-  const [touchDragActive, setTouchDragActive] = useState<boolean>(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  const touchStartTimeRef = useRef<number | null>(null);
-  const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isDragActive, setIsDragActive] = useState<boolean>(false);
+  const dragStartTimeRef = useRef<number | null>(null);
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dragSourceRef = useRef<string | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   
   const images = [
@@ -37,8 +37,7 @@ const Landing = () => {
         setHeaderHeight(newHeaderHeight);
         
         // Generate grid immediately after getting header height
-        const isMobileDevice = window.innerWidth <= 768 || 'ontouchstart' in window;
-        setIsMobile(isMobileDevice);
+        const isMobileDevice = window.innerWidth <= 768;
         const tileSize = isMobileDevice ? 61 : 51; // 60px tiles + 1px grout on mobile
         const footerHeight = isMobileDevice ? 64 : 80; // Fixed footer height
         const availableWidth = window.innerWidth;
@@ -227,32 +226,29 @@ const Landing = () => {
     setDraggedTile(null);
   };
 
-  const handleTouchStart = (e: React.TouchEvent, tileId: string) => {
-    if (!isMobile) return;
-    
-    touchStartTimeRef.current = Date.now();
-    setTouchDragActive(false);
+  // Unified drag start for both touch and mouse
+  const handleUnifiedDragStart = (tileId: string, clientX: number, clientY: number) => {
+    dragStartTimeRef.current = Date.now();
+    dragSourceRef.current = tileId;
+    setIsDragActive(false);
     
     // Clear any existing timeout
-    if (touchTimeoutRef.current) {
-      clearTimeout(touchTimeoutRef.current);
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
     }
     
     // Set a delay for drag activation
-    touchTimeoutRef.current = setTimeout(() => {
-      setTouchDragActive(true);
+    dragTimeoutRef.current = setTimeout(() => {
+      setIsDragActive(true);
       setDraggedTile(tileId);
     }, 500);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchDragActive || !draggedTile) return;
+  const handleUnifiedDragMove = (clientX: number, clientY: number) => {
+    if (!isDragActive || !draggedTile) return;
     
-    e.preventDefault();
-    const touch = e.touches[0];
-    
-    // Find the element under the touch point
-    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    // Find the element under the touch/mouse point
+    const elementBelow = document.elementFromPoint(clientX, clientY);
     if (elementBelow && elementBelow.getAttribute('data-tile-id')) {
       const targetTileId = elementBelow.getAttribute('data-tile-id');
       if (targetTileId && targetTileId !== draggedTile) {
@@ -261,27 +257,27 @@ const Landing = () => {
     }
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleUnifiedDragEnd = (clientX: number, clientY: number) => {
     // Clear timeout
-    if (touchTimeoutRef.current) {
-      clearTimeout(touchTimeoutRef.current);
-      touchTimeoutRef.current = null;
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
+      dragTimeoutRef.current = null;
     }
 
-    if (!touchDragActive || !draggedTile) {
-      setTouchDragActive(false);
+    if (!isDragActive || !draggedTile) {
+      setIsDragActive(false);
       setDraggedTile(null);
-      touchStartTimeRef.current = null;
+      dragStartTimeRef.current = null;
+      dragSourceRef.current = null;
       return;
     }
 
-    const touch = e.changedTouches[0];
-    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    const elementBelow = document.elementFromPoint(clientX, clientY);
     
     if (elementBelow && elementBelow.getAttribute('data-tile-id')) {
       const targetTileId = elementBelow.getAttribute('data-tile-id');
       if (targetTileId && targetTileId !== draggedTile) {
-        // Perform the swap using the same logic as handleDrop
+        // Perform the swap
         setStaticTiles(prevTiles => {
           const newTiles = [...prevTiles];
           const draggedIndex = newTiles.findIndex(t => t.id === draggedTile);
@@ -313,8 +309,46 @@ const Landing = () => {
     }
 
     setDraggedTile(null);
-    setTouchDragActive(false);
-    touchStartTimeRef.current = null;
+    setIsDragActive(false);
+    dragStartTimeRef.current = null;
+    dragSourceRef.current = null;
+  };
+
+  // Touch event handlers that use unified system
+  const handleTouchStart = (e: React.TouchEvent, tileId: string) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleUnifiedDragStart(tileId, touch.clientX, touch.clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      const touch = e.touches[0];
+      handleUnifiedDragMove(touch.clientX, touch.clientY);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (e.changedTouches.length > 0) {
+      const touch = e.changedTouches[0];
+      handleUnifiedDragEnd(touch.clientX, touch.clientY);
+    }
+  };
+
+  // Mouse event handlers that use unified system  
+  const handleMouseDown = (e: React.MouseEvent, tileId: string) => {
+    if (e.button !== 0) return; // Only handle left mouse button
+    handleUnifiedDragStart(tileId, e.clientX, e.clientY);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    handleUnifiedDragMove(e.clientX, e.clientY);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    handleUnifiedDragEnd(e.clientX, e.clientY);
   };
 
   return (
@@ -350,17 +384,15 @@ const Landing = () => {
               height: window.innerWidth <= 768 ? '60px' : '50px',
               border: '1px solid white',
               boxSizing: 'border-box',
-              touchAction: 'auto'
+              touchAction: 'manipulation'
             }}
             data-tile-id={tile.id}
-            draggable={!isMobile}
-            onDragStart={!isMobile ? (e) => handleDragStart(e, tile.id) : undefined}
-            onDragOver={!isMobile ? handleDragOver : undefined}
-            onDrop={!isMobile ? (e) => handleDrop(e, tile.id) : undefined}
-            onDragEnd={!isMobile ? handleDragEnd : undefined}
-            onTouchStart={isMobile ? (e) => handleTouchStart(e, tile.id) : undefined}
-            onTouchMove={isMobile ? handleTouchMove : undefined}
-            onTouchEnd={isMobile ? handleTouchEnd : undefined}
+            onTouchStart={(e) => handleTouchStart(e, tile.id)}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={(e) => handleMouseDown(e, tile.id)}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
             onClick={() => handleTileClick(tile.id)}
           >
             <img
