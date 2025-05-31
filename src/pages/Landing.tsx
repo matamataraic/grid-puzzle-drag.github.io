@@ -17,9 +17,9 @@ const Landing = () => {
   const [gridDimensions, setGridDimensions] = useState({ cols: 0, rows: 0 });
   const [headerHeight, setHeaderHeight] = useState(0);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
-  const [touchStartTime, setTouchStartTime] = useState<number | null>(null);
   const [touchDragActive, setTouchDragActive] = useState<boolean>(false);
-  const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
+  const touchStartTimeRef = useRef<number | null>(null);
+  const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   
   const images = [
@@ -226,17 +226,19 @@ const Landing = () => {
   };
 
   const handleTouchStart = (e: React.TouchEvent, tileId: string) => {
-    const touch = e.touches[0];
-    setTouchStartTime(Date.now());
-    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    e.preventDefault();
+    touchStartTimeRef.current = Date.now();
     setTouchDragActive(false);
     
+    // Clear any existing timeout
+    if (touchTimeoutRef.current) {
+      clearTimeout(touchTimeoutRef.current);
+    }
+    
     // Set a delay for drag activation
-    setTimeout(() => {
-      if (touchStartTime && Date.now() - touchStartTime >= 500) {
-        setTouchDragActive(true);
-        setDraggedTile(tileId);
-      }
+    touchTimeoutRef.current = setTimeout(() => {
+      setTouchDragActive(true);
+      setDraggedTile(tileId);
     }, 500);
   };
 
@@ -257,10 +259,16 @@ const Landing = () => {
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    // Clear timeout
+    if (touchTimeoutRef.current) {
+      clearTimeout(touchTimeoutRef.current);
+      touchTimeoutRef.current = null;
+    }
+
     if (!touchDragActive || !draggedTile) {
-      setTouchStartTime(null);
-      setTouchStartPos(null);
       setTouchDragActive(false);
+      setDraggedTile(null);
+      touchStartTimeRef.current = null;
       return;
     }
 
@@ -302,15 +310,18 @@ const Landing = () => {
     }
 
     setDraggedTile(null);
-    setTouchStartTime(null);
-    setTouchStartPos(null);
     setTouchDragActive(false);
+    touchStartTimeRef.current = null;
   };
 
   return (
     <div 
-      className="h-screen flex flex-col overflow-hidden"
-      style={{ touchAction: 'pan-none' }}
+      className="h-screen flex flex-col"
+      style={{ 
+        touchAction: 'pan-none',
+        overflow: 'hidden',
+        height: '100dvh'
+      }}
     >
       {/* Header Image - Responsive */}
       <div className="w-full flex-shrink-0 px-2 pt-2 md:px-4 md:pt-[20px]" ref={headerRef}>

@@ -97,6 +97,13 @@
 
   body {
     @apply bg-background text-foreground;
+    overflow: hidden;
+    height: 100dvh;
+  }
+
+  html {
+    overflow: hidden;
+    height: 100dvh;
   }
   
   /* Mobile-specific improvements */
