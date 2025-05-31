@@ -120,7 +120,9 @@ export const GridPuzzle = () => {
   const handleTouchStart = (e) => {
     if (!isMobile()) return;
     
+    // Only allow two-finger interactions
     if (e.touches.length === 2) {
+      e.preventDefault();
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.sqrt(
@@ -132,13 +134,19 @@ export const GridPuzzle = () => {
         y: (touch1.clientY + touch2.clientY) / 2,
         scale: distance
       });
+    } else if (e.touches.length === 1) {
+      // Prevent single finger scrolling
+      e.preventDefault();
     }
   };
 
   const handleTouchMove = (e) => {
     if (!isMobile()) return;
+    
+    // Always prevent default to stop any scrolling
     e.preventDefault();
     
+    // Only process two-finger interactions
     if (e.touches.length === 2) {
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
@@ -591,7 +599,9 @@ export const GridPuzzle = () => {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       style={{
-        touchAction: isMobile() ? 'none' : 'auto'
+        touchAction: isMobile() ? 'none' : 'auto',
+        userSelect: 'none',
+        WebkitUserSelect: 'none'
       }}
     >
       <div className="fixed top-0 left-0 right-0 h-[155px] bg-neutral-50 z-[5]" />

@@ -34,8 +34,8 @@ const Landing = () => {
         
         // Generate grid immediately after getting header height
         const isMobile = window.innerWidth <= 768;
-        const tileSize = isMobile ? 30 : 51; // Smaller tiles on mobile
-        const footerHeight = isMobile ? 80 : 104; // Smaller footer on mobile
+        const tileSize = isMobile ? 60 : 51; // Larger tiles on mobile for better visibility
+        const footerHeight = isMobile ? 100 : 104; // Adequate footer on mobile
         const availableWidth = window.innerWidth;
         const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
         
@@ -192,13 +192,16 @@ const Landing = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div 
+      className="h-screen flex flex-col overflow-hidden"
+      style={{ touchAction: 'none' }}
+    >
       {/* Header Image - Responsive */}
-      <div className="w-full flex-shrink-0 px-4 pt-4 md:pt-[20px]" ref={headerRef}>
+      <div className="w-full flex-shrink-0 px-2 pt-2 md:px-4 md:pt-[20px]" ref={headerRef}>
         <img
           src="https://i.imgur.com/fubvRXX.jpeg"
           alt="Game Instructions"
-          className="w-full h-auto max-h-[20vh] md:max-h-none object-contain"
+          className="w-full h-auto max-h-[15vh] md:max-h-none object-contain"
         />
       </div>
 
@@ -213,8 +216,8 @@ const Landing = () => {
             style={{
               left: `${tile.gridX}px`,
               top: `${tile.gridY}px`,
-              width: window.innerWidth <= 768 ? '30px' : '50px',
-              height: window.innerWidth <= 768 ? '30px' : '50px',
+              width: window.innerWidth <= 768 ? '60px' : '50px',
+              height: window.innerWidth <= 768 ? '60px' : '50px',
             }}
             draggable
             onDragStart={(e) => handleDragStart(e, tile.id)}
@@ -236,11 +239,11 @@ const Landing = () => {
         ))}
       </div>
 
-      {/* Footer Button - Responsive */}
-      <div className="w-full flex-shrink-0 bg-background py-4 md:py-8 flex justify-center">
+      {/* Footer Button - Always visible */}
+      <div className="w-full flex-shrink-0 bg-background py-3 md:py-8 flex justify-center border-t border-gray-200">
         <Button 
           onClick={handleDesignClick}
-          className="px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-semibold"
+          className="px-8 py-3 md:px-8 md:py-4 text-lg md:text-lg font-semibold bg-black text-white hover:bg-gray-800"
         >
           design!
         </Button>
