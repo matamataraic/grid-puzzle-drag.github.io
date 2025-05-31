@@ -18,6 +18,7 @@ const Landing = () => {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
   const [touchDragActive, setTouchDragActive] = useState<boolean>(false);
+  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
   const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   
@@ -36,6 +37,8 @@ const Landing = () => {
         
         // Generate grid immediately after getting header height
         const isMobileDevice = window.innerWidth <= 768;
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        setIsTouchDevice(isTouch);
         const tileSize = isMobileDevice ? 61 : 51; // 60px tiles + 1px grout on mobile
         const footerHeight = isMobileDevice ? 64 : 80; // Fixed footer height
         const availableWidth = window.innerWidth;
@@ -335,14 +338,14 @@ const Landing = () => {
               touchAction: 'manipulation'
             }}
             data-tile-id={tile.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, tile.id)}
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, tile.id)}
-            onDragEnd={handleDragEnd}
-            onTouchStart={(e) => handleTouchStart(e, tile.id)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            draggable={!isTouchDevice}
+            onDragStart={!isTouchDevice ? (e) => handleDragStart(e, tile.id) : undefined}
+            onDragOver={!isTouchDevice ? handleDragOver : undefined}
+            onDrop={!isTouchDevice ? (e) => handleDrop(e, tile.id) : undefined}
+            onDragEnd={!isTouchDevice ? handleDragEnd : undefined}
+            onTouchStart={isTouchDevice ? (e) => handleTouchStart(e, tile.id) : undefined}
+            onTouchMove={isTouchDevice ? handleTouchMove : undefined}
+            onTouchEnd={isTouchDevice ? handleTouchEnd : undefined}
             onClick={() => handleTileClick(tile.id)}
           >
             <img
