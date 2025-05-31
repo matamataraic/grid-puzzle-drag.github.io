@@ -34,8 +34,8 @@ const Landing = () => {
         
         // Generate grid immediately after getting header height
         const isMobile = window.innerWidth <= 768;
-        const tileSize = isMobile ? 60 : 51; // Larger tiles on mobile for better visibility
-        const footerHeight = isMobile ? 100 : 104; // Adequate footer on mobile
+        const tileSize = isMobile ? 61 : 51; // 60px tiles + 1px grout on mobile
+        const footerHeight = isMobile ? 80 : 104; // Adequate footer on mobile
         const availableWidth = window.innerWidth;
         const availableHeight = window.innerHeight - newHeaderHeight - footerHeight;
         
@@ -100,11 +100,8 @@ const Landing = () => {
       }
     };
 
-    // Initial calculation
-    calculateAndGenerate();
-    
-    // Also run after a small delay to ensure DOM is ready
-    const timer = setTimeout(calculateAndGenerate, 100);
+    // Single calculation after a delay to ensure DOM is ready
+    const timer = setTimeout(calculateAndGenerate, 200);
     
     // Regenerate on window resize with debounce
     let resizeTimer: NodeJS.Timeout;
@@ -218,6 +215,8 @@ const Landing = () => {
               top: `${tile.gridY}px`,
               width: window.innerWidth <= 768 ? '60px' : '50px',
               height: window.innerWidth <= 768 ? '60px' : '50px',
+              border: '1px solid white',
+              boxSizing: 'border-box'
             }}
             draggable
             onDragStart={(e) => handleDragStart(e, tile.id)}
@@ -240,10 +239,10 @@ const Landing = () => {
       </div>
 
       {/* Footer Button - Always visible */}
-      <div className="w-full flex-shrink-0 bg-background py-3 md:py-8 flex justify-center border-t border-gray-200">
+      <div className="w-full flex-shrink-0 bg-white py-4 md:py-8 flex justify-center border-t border-gray-200 z-50 relative">
         <Button 
           onClick={handleDesignClick}
-          className="px-8 py-3 md:px-8 md:py-4 text-lg md:text-lg font-semibold bg-black text-white hover:bg-gray-800"
+          className="px-8 py-3 md:px-8 md:py-4 text-lg md:text-lg font-semibold bg-black text-white hover:bg-gray-800 z-50"
         >
           design!
         </Button>
