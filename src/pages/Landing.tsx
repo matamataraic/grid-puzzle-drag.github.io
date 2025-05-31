@@ -227,18 +227,22 @@ const Landing = () => {
     setDraggedTile(null);
   };
 
-  // Touch event handlers for mobile
+  // Touch event handlers for mobile with debug logging
   const handleTouchStart = (e: React.TouchEvent, tileId: string) => {
+    console.log('Touch start fired for tile:', tileId);
     setTouchDragActive(true);
     setDraggedTile(tileId);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    console.log('Touch move fired, drag active:', touchDragActive, 'dragged tile:', draggedTile);
     if (!touchDragActive || !draggedTile) return;
     e.preventDefault();
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    console.log('Touch end fired, drag active:', touchDragActive, 'dragged tile:', draggedTile);
+    
     // Clear timeout
     if (touchTimeoutRef.current) {
       clearTimeout(touchTimeoutRef.current);
@@ -253,10 +257,14 @@ const Landing = () => {
 
     const touch = e.changedTouches[0];
     const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    console.log('Element below finger:', elementBelow);
     
     if (elementBelow && elementBelow.getAttribute('data-tile-id')) {
       const targetTileId = elementBelow.getAttribute('data-tile-id');
+      console.log('Target tile ID:', targetTileId, 'Dragged tile ID:', draggedTile);
+      
       if (targetTileId && targetTileId !== draggedTile) {
+        console.log('Performing tile swap');
         // Perform the swap
         setStaticTiles(prevTiles => {
           const newTiles = [...prevTiles];
