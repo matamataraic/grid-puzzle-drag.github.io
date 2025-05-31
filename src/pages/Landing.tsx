@@ -246,7 +246,7 @@ const Landing = () => {
       </div>
 
       {/* Footer Button - Always visible */}
-      <div className="w-full h-16 md:h-20 flex-shrink-0 bg-white flex items-center justify-center border-t border-gray-200 fixed bottom-0 left-0 right-0 z-50">
+      <div className="w-full h-16 md:h-20 flex-shrink-0 bg-white flex items-center justify-center fixed bottom-0 left-0 right-0 z-50">
         <Button 
           onClick={handleDesignClick}
           className="px-8 py-3 text-lg font-semibold bg-black text-white hover:bg-gray-800"
