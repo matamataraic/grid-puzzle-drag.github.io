@@ -18,6 +18,8 @@ const Landing = () => {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
   const [touchDragActive, setTouchDragActive] = useState<boolean>(false);
+  const [touchPosition, setTouchPosition] = useState<{ x: number; y: number } | null>(null);
+  const [draggedTileData, setDraggedTileData] = useState<StaticTile | null>(null);
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
   const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -174,8 +176,14 @@ const Landing = () => {
       const tileId = target.closest('[data-tile-id]')?.getAttribute('data-tile-id');
       if (tileId) {
         console.log('Native touch start fired for tile:', tileId);
-        setTouchDragActive(true);
-        setDraggedTile(tileId);
+        const tileData = staticTiles.find(t => t.id === tileId);
+        if (tileData) {
+          setTouchDragActive(true);
+          setDraggedTile(tileId);
+          setDraggedTileData(tileData);
+          const touch = e.touches[0];
+          setTouchPosition({ x: touch.clientX, y: touch.clientY });
+        }
       }
     };
 
@@ -183,6 +191,8 @@ const Landing = () => {
       console.log('Native touch move fired, drag active:', touchDragActive, 'dragged tile:', draggedTile);
       if (touchDragActive && draggedTile) {
         e.preventDefault();
+        const touch = e.touches[0];
+        setTouchPosition({ x: touch.clientX, y: touch.clientY });
       }
     };
 
@@ -199,41 +209,43 @@ const Landing = () => {
       const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
       console.log('Element below finger:', elementBelow);
       
-      if (elementBelow && elementBelow.getAttribute('data-tile-id')) {
-        const targetTileId = elementBelow.getAttribute('data-tile-id');
-        console.log('Target tile ID:', targetTileId, 'Dragged tile ID:', draggedTile);
-        
-        if (targetTileId && targetTileId !== draggedTile) {
-          console.log('Performing tile swap');
-          setStaticTiles(prevTiles => {
-            const newTiles = [...prevTiles];
-            const draggedIndex = newTiles.findIndex(t => t.id === draggedTile);
-            const targetIndex = newTiles.findIndex(t => t.id === targetTileId);
+      // Look for tile container using closest() to handle images inside tiles
+      const tileContainer = elementBelow?.closest('[data-tile-id]');
+      const targetTileId = tileContainer?.getAttribute('data-tile-id');
+      console.log('Target tile ID:', targetTileId, 'Dragged tile ID:', draggedTile);
+      
+      if (targetTileId && targetTileId !== draggedTile) {
+        console.log('Performing tile swap');
+        setStaticTiles(prevTiles => {
+          const newTiles = [...prevTiles];
+          const draggedIndex = newTiles.findIndex(t => t.id === draggedTile);
+          const targetIndex = newTiles.findIndex(t => t.id === targetTileId);
+          
+          if (draggedIndex !== -1 && targetIndex !== -1) {
+            const draggedImageIndex = newTiles[draggedIndex].imageIndex;
+            const draggedRotation = newTiles[draggedIndex].rotation;
             
-            if (draggedIndex !== -1 && targetIndex !== -1) {
-              const draggedImageIndex = newTiles[draggedIndex].imageIndex;
-              const draggedRotation = newTiles[draggedIndex].rotation;
-              
-              newTiles[targetIndex] = {
-                ...newTiles[targetIndex],
-                imageIndex: draggedImageIndex,
-                rotation: draggedRotation,
-              };
-              
-              newTiles[draggedIndex] = {
-                ...newTiles[draggedIndex],
-                rotation: Math.floor(Math.random() * 4) * 90,
-                imageIndex: Math.floor(Math.random() * images.length),
-              };
-            }
+            newTiles[targetIndex] = {
+              ...newTiles[targetIndex],
+              imageIndex: draggedImageIndex,
+              rotation: draggedRotation,
+            };
             
-            return newTiles;
-          });
-        }
+            newTiles[draggedIndex] = {
+              ...newTiles[draggedIndex],
+              rotation: Math.floor(Math.random() * 4) * 90,
+              imageIndex: Math.floor(Math.random() * images.length),
+            };
+          }
+          
+          return newTiles;
+        });
       }
 
       setDraggedTile(null);
       setTouchDragActive(false);
+      setTouchPosition(null);
+      setDraggedTileData(null);
     };
 
     container.addEventListener('touchstart', handleNativeTouchStart, { passive: false });
@@ -245,7 +257,7 @@ const Landing = () => {
       container.removeEventListener('touchmove', handleNativeTouchMove);
       container.removeEventListener('touchend', handleNativeTouchEnd);
     };
-  }, [isTouchDevice, touchDragActive, draggedTile, images.length]);
+  }, [isTouchDevice, touchDragActive, draggedTile, images.length, staticTiles]);
 
   const handleDesignClick = () => {
     navigate("/design");
