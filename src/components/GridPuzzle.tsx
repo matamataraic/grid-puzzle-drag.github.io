@@ -959,21 +959,25 @@ export const GridPuzzle = () => {
           {/* Grid - positioned to be centered in viewport */}
           {isGridGenerated && (
             <div
-              ref={gridRef}
-              data-grid-container="true"
-              className="relative border border-BLACK bg-white z-10"
+              className="absolute z-10"
               style={{
-                display: 'grid',
-                gridTemplateColumns: `repeat(${horizontal}, 50px)`,
-                gridTemplateRows: `repeat(${vertical}, 50px)`,
-                position: 'absolute',
                 left: '50%',
-                transform: `translateX(-50%)`,
+                transform: 'translateX(-50%)',
                 top: isMobile() ? `calc(50vh - ${(parseInt(vertical) * 50) / 2}px)` : '175px',
-                borderWidth: '1px',
-                borderColor: 'white'
               }}
             >
+              <div
+                ref={gridRef}
+                data-grid-container="true"
+                className="relative border border-BLACK bg-white"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${horizontal}, 50px)`,
+                  gridTemplateRows: `repeat(${vertical}, 50px)`,
+                  borderWidth: '1px',
+                  borderColor: 'white'
+                }}
+              >
               {gridTiles.map((row, y) =>
                 row.map((tile, x) => (
                   <div
@@ -993,6 +997,7 @@ export const GridPuzzle = () => {
                   </div>
                 ))
               )}
+              </div>
             </div>
           )}
         </div>
