@@ -452,13 +452,16 @@ export const GridPuzzle = () => {
       const screenWidth = document.documentElement.clientWidth;
       const screenHeight = document.documentElement.clientHeight;
       
-      // Calculate center position
-      const centerX = (screenWidth - gridWidth) / 2;
-      const centerY = (screenHeight - gridHeight) / 2;
+      // Account for header (approximately 140px) and footer space on mobile
+      const availableHeight = screenHeight - 140;
       
-      // Set translation to center the grid
-      setTranslateX(centerX);
-      setTranslateY(centerY);
+      // Calculate center position in available space
+      const centerX = (screenWidth - gridWidth) / 2;
+      const centerY = (availableHeight - gridHeight) / 2 + 70; // Add header offset
+      
+      // Set translation to center the grid (negative values to move grid to center)
+      setTranslateX(-centerX);
+      setTranslateY(-centerY);
       setScale(1);
     }
   };
