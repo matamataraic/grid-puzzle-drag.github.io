@@ -295,6 +295,12 @@ export const GridPuzzle = () => {
       if (e.touches.length !== 1) return; // Only single finger
       
       const target = e.target as HTMLElement;
+      
+      // Ignore touches on UI buttons and controls
+      if (target.closest('button') || target.closest('input') || target.closest('[role="button"]')) {
+        return;
+      }
+      
       const tileElement = target.closest('[data-tile-id]');
       const tileId = tileElement?.getAttribute('data-tile-id');
       
@@ -442,17 +448,17 @@ export const GridPuzzle = () => {
       const gridWidth = cols * 50;
       const gridHeight = rows * 50;
       
-      // Use visual viewport for mobile browsers to handle browser UI correctly
-      const screenWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-      const screenHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      // Use document.documentElement dimensions for mobile browsers
+      const screenWidth = document.documentElement.clientWidth;
+      const screenHeight = document.documentElement.clientHeight;
       
       // Calculate center position
       const centerX = (screenWidth - gridWidth) / 2;
       const centerY = (screenHeight - gridHeight) / 2;
       
       // Set translation to center the grid
-      setTranslateX(-centerX);
-      setTranslateY(-centerY);
+      setTranslateX(centerX);
+      setTranslateY(centerY);
       setScale(1);
     }
   };
