@@ -119,16 +119,12 @@ export const GridPuzzleMobile = () => {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     
-    // Calculate available space between header (155px) and footer (195px)
-    const headerHeight = 155;
-    const footerHeight = 195;
-    const availableHeight = screenHeight - headerHeight - footerHeight;
-    
-    // Center in available viewport space
+    // Center in available space below header
     const centerX = screenWidth / 2;
-    const centerY = headerHeight + (availableHeight / 2);
+    const availableHeight = screenHeight - 175;
+    const centerY = 175 + (availableHeight / 2);
     
-    // Generate from center outwards to fill viewport immediately
+    // Generate from center outwards
     const halfGrid = GRID_SIZE / 2;
     
     for (let row = 0; row < GRID_SIZE; row++) {
@@ -145,13 +141,10 @@ export const GridPuzzleMobile = () => {
 
     setTiles(newTiles);
     
-    // Set initial scale to show background grid immediately at comfortable viewing size
-    const initialScale = Math.min(screenWidth / (TILE_SIZE * 20), availableHeight / (TILE_SIZE * 20)) * 0.8;
-    setScale(initialScale);
-    
-    // Center the view on the generated grid
-    setTranslateX(centerX);
-    setTranslateY(centerY);
+    // Set initial scale to 1.0 for comfortable viewing (original scale)
+    setScale(1.0);
+    setTranslateX(0);
+    setTranslateY(0);
   };
 
   // Mobile touch handlers for zoom and pan
