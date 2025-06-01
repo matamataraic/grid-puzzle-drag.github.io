@@ -182,19 +182,19 @@ export const GridPuzzleMobile = () => {
         Math.pow(centerY - lastTouch.y, 2)
       );
 
-      // Threshold to distinguish between pan and zoom
-      const zoomThreshold = 10; // Minimum distance change to trigger zoom
-      const panThreshold = 5;   // Minimum movement to trigger pan
+      // More responsive thresholds - prioritize zoom for clear pinch gestures
+      const zoomThreshold = 8; // Clear pinch distance change to trigger zoom
+      const panThreshold = 2;  // Lower threshold for responsive panning
 
       if (distanceChange > zoomThreshold) {
-        // ZOOM: Pinching gesture detected
+        // ZOOM: Clear pinching gesture detected
         const minScale = 0.3; // Maximum zoom out as requested
         const maxScale = 1.0; // Maximum zoom in (loaded page scale) as requested
 
         const newScale = Math.max(minScale, Math.min(maxScale, scale * (distance / lastTouch.scale)));
         setScale(newScale);
-      } else if (centerMovement > panThreshold && distanceChange <= zoomThreshold) {
-        // PAN: Two fingers moving together without distance change
+      } else if (centerMovement > panThreshold) {
+        // PAN: Two fingers moving together - prioritize pan for most gestures
         const deltaX = centerX - lastTouch.x;
         const deltaY = centerY - lastTouch.y;
 
