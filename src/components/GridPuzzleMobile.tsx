@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Info, RotateCcw, Save, Eye } from 'lucide-react';
@@ -76,12 +75,12 @@ export const GridPuzzleMobile = () => {
   const [translateX, setTranslateX] = useState(0);
   const [translateY, setTranslateY] = useState(0);
   const [lastTouch, setLastTouch] = useState({ x: 0, y: 0, scale: 1 });
-  
+
   // Mobile grid constants
   const GRID_SIZE = 100;
   const TILE_SIZE = 51;
   const GRID_TOTAL_SIZE = GRID_SIZE * TILE_SIZE;
-  
+
   // Touch drag states
   const [touchDragActive, setTouchDragActive] = useState(false);
   const [draggedTile, setDraggedTile] = useState<string | null>(null);
@@ -118,15 +117,14 @@ export const GridPuzzleMobile = () => {
     const newTiles: TilePosition[] = [];
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    
-    // Center in available space below header
+
+    // Center in available space below header (same as desktop logic)
     const centerX = screenWidth / 2;
-    const availableHeight = screenHeight - 175;
-    const centerY = 175 + (availableHeight / 2);
-    
+    const centerY = 175; // Start from same Y as main grid (desktop logic)
+
     // Generate from center outwards
     const halfGrid = GRID_SIZE / 2;
-    
+
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
         newTiles.push({
@@ -140,8 +138,8 @@ export const GridPuzzleMobile = () => {
     }
 
     setTiles(newTiles);
-    
-    // Set initial scale to 1.0 for comfortable viewing (original scale)
+
+    // Set initial scale to 1.0 for immediate visibility (same as desktop)
     setScale(1.0);
     setTranslateX(0);
     setTranslateY(0);
@@ -180,24 +178,24 @@ export const GridPuzzleMobile = () => {
       // Scale - allow zooming from 0.1x to 2.0x
       const minScale = 0.1; // Allow zooming out to see more tiles
       const maxScale = 2.0; // Allow zooming in for detail
-      
+
       const newScale = Math.max(minScale, Math.min(maxScale, scale * (distance / lastTouch.scale)));
       setScale(newScale);
 
       // Pan with boundaries
       const deltaX = centerX - lastTouch.x;
       const deltaY = centerY - lastTouch.y;
-      
+
       const potentialX = translateX + deltaX;
       const potentialY = translateY + deltaY;
-      
+
       // Calculate boundaries
       const halfScaledGrid = (GRID_TOTAL_SIZE * newScale) / 2;
       const boundedX = Math.max(screenWidth / 2 - halfScaledGrid, 
                                Math.min(screenWidth / 2 + halfScaledGrid, potentialX));
       const boundedY = Math.max(175 + screenHeight / 2 - halfScaledGrid, 
                                Math.min(175 + screenHeight / 2 + halfScaledGrid, potentialY));
-      
+
       setTranslateX(boundedX);
       setTranslateY(boundedY);
 
@@ -211,17 +209,17 @@ export const GridPuzzleMobile = () => {
     const screenHeight = window.innerHeight;
     const buffer = TILE_SIZE * 2;
     const halfGrid = GRID_SIZE / 2;
-    
+
     const viewLeft = (screenWidth / 2 - translateX) / scale - buffer;
     const viewRight = (screenWidth / 2 - translateX + screenWidth) / scale + buffer;
     const viewTop = (175 + screenHeight / 2 - translateY) / scale - buffer;
     const viewBottom = (175 + screenHeight / 2 - translateY + screenHeight) / scale + buffer;
-    
+
     const startCol = Math.max(-halfGrid, Math.floor(viewLeft / TILE_SIZE));
     const endCol = Math.min(halfGrid - 1, Math.ceil(viewRight / TILE_SIZE));
     const startRow = Math.max(-halfGrid, Math.floor(viewTop / TILE_SIZE));
     const endRow = Math.min(halfGrid - 1, Math.ceil(viewBottom / TILE_SIZE));
-    
+
     return tiles.filter(tile => {
       const col = Math.floor(tile.x / TILE_SIZE);
       const row = Math.floor(tile.y / TILE_SIZE);
@@ -237,16 +235,16 @@ export const GridPuzzleMobile = () => {
 
     const handleNativeTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
-      
+
       const target = e.target as HTMLElement;
-      
+
       if (target.closest('button') || target.closest('input') || target.closest('[role="button"]')) {
         return;
       }
-      
+
       const tileElement = target.closest('[data-tile-id]');
       const tileId = tileElement?.getAttribute('data-tile-id');
-      
+
       if (tileId && !touchDragActive) {
         const tileData = tiles.find(t => t.id === tileId);
         if (tileData) {
@@ -261,7 +259,7 @@ export const GridPuzzleMobile = () => {
 
     const handleNativeTouchMove = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
-      
+
       if (touchDragActive && draggedTile) {
         e.preventDefault();
         const touch = e.touches[0];
@@ -280,36 +278,36 @@ export const GridPuzzleMobile = () => {
 
       const touch = e.changedTouches[0];
       const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-      
+
       const backgroundTileContainer = elementBelow?.closest('[data-tile-id]');
       const backgroundTileId = backgroundTileContainer?.getAttribute('data-tile-id');
-      
+
       const gridContainer = elementBelow?.closest('[data-grid-container]');
-      
+
       if (backgroundTileId && backgroundTileId !== draggedTile) {
         // Swap tiles
         setTiles(prevTiles => {
           const newTiles = [...prevTiles];
           const draggedIndex = newTiles.findIndex(t => t.id === draggedTile);
           const targetIndex = newTiles.findIndex(t => t.id === backgroundTileId);
-          
+
           if (draggedIndex !== -1 && targetIndex !== -1) {
             const draggedImageIndex = newTiles[draggedIndex].imageIndex;
             const draggedRotation = newTiles[draggedIndex].rotation;
-            
+
             newTiles[targetIndex] = {
               ...newTiles[targetIndex],
               imageIndex: draggedImageIndex,
               rotation: draggedRotation,
             };
-            
+
             newTiles[draggedIndex] = {
               ...newTiles[draggedIndex],
               rotation: Math.floor(Math.random() * 4) * 90,
               imageIndex: Math.floor(Math.random() * images.length),
             };
           }
-          
+
           return newTiles;
         });
       } else if (gridContainer && gridRef.current) {
@@ -319,9 +317,9 @@ export const GridPuzzleMobile = () => {
         const y = touch.clientY - gridRect.top;
         const cellX = Math.floor(x / 50);
         const cellY = Math.floor(y / 50);
-        
+
         const draggedTileData = tiles.find(t => t.id === draggedTile);
-        
+
         if (
           draggedTileData &&
           cellX >= 0 &&
@@ -337,9 +335,9 @@ export const GridPuzzleMobile = () => {
             rotation: draggedTileData.rotation,
             imageIndex: draggedTileData.imageIndex
           };
-          
+
           setGridTiles(updatedGrid);
-          
+
           setTiles(prev => prev.map(t => 
             t.id === draggedTile 
               ? { ...t, rotation: Math.floor(Math.random() * 4) * 90, imageIndex: Math.floor(Math.random() * images.length) }
@@ -391,7 +389,7 @@ export const GridPuzzleMobile = () => {
       const newGrid = Array(v).fill(null).map(() => Array(h).fill(null));
       setGridTiles(newGrid);
     }
-    
+
     setIsGridGenerated(true);
   };
 
@@ -440,7 +438,7 @@ export const GridPuzzleMobile = () => {
 
     if (placed) {
       setGridTiles(updatedGrid);
-      
+
       setTiles(prev => prev.map(t => 
         t.id === tileId 
           ? { ...t, rotation: Math.floor(Math.random() * 4) * 90, imageIndex: Math.floor(Math.random() * images.length) }
@@ -465,12 +463,12 @@ export const GridPuzzleMobile = () => {
   const handleRandom = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const randomH = Math.floor(Math.random() * 9) + 2;
     const randomV = Math.floor(Math.random() * 9) + 2;
     setHorizontal(randomH.toString());
     setVertical(randomV.toString());
-    
+
     const newGrid = Array(randomV).fill(null).map(() => 
       Array(randomH).fill(null).map(() => ({
         id: `tile-${Date.now()}-${Math.random()}`,
@@ -480,7 +478,7 @@ export const GridPuzzleMobile = () => {
         imageIndex: Math.floor(Math.random() * images.length),
       }))
     );
-    
+
     setGridTiles(newGrid);
     setIsGridGenerated(true);
   };
@@ -574,7 +572,7 @@ export const GridPuzzleMobile = () => {
     const totalS2 = imageCounts.S2 * 12;
     const magneticCost = orderType === "magnetic" ? (imageCounts.S0 + imageCounts.S1 + imageCounts.S2) * 3 : 0;
     const grandTotal = totalS0 + totalS1 + totalS2 + magneticCost;
-    
+
     const body = `
     Ime i prezime: ${orderForm.name}
     Ulica stanovanja: ${orderForm.address}
@@ -831,8 +829,7 @@ export const GridPuzzleMobile = () => {
                 <span className="text-sm">{imageCounts.S0}</span>
                 <span className="text-sm">x 7€</span>
               </div>
-              <span className="text-sm">{(imageCounts.S0 * 7)}€</span>
-            </div>
+              <span className="text-sm">{(imageCounts.S0 * 7)}€              </div>
             <div className="flex flex-col items-center">
               <div className="flex gap-2">
                 <span className="text-sm font-medium">S1:</span>
