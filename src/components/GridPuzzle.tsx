@@ -274,18 +274,22 @@ export const GridPuzzle = () => {
     loadImages();
   }, []);
 
-  // Generate the pre-loaded 100x100 grid centered around (0,0)
+  // Generate the pre-loaded 100x100 grid centered around main grid position
   const generatePreloadedGrid = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
     const halfGrid = GRID_SIZE / 2;
     
-    // Generate 100x100 grid of tiles centered around (0,0)
+    // Calculate the main grid's horizontal center position (same as main grid centering logic)
+    const screenWidth = window.innerWidth;
+    const mainGridCenterX = screenWidth / 2;
+    
+    // Generate 100x100 grid of tiles centered around main grid's horizontal center
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
         newTiles.push({
           id: `tile-${row}-${col}`,
-          x: (col - halfGrid) * TILE_SIZE,
-          y: (row - halfGrid) * TILE_SIZE,
+          x: mainGridCenterX + (col - halfGrid) * TILE_SIZE,
+          y: 175 + (row - halfGrid) * TILE_SIZE, // Start from same Y as main grid
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * loadedImages.length),
         });
@@ -295,13 +299,12 @@ export const GridPuzzle = () => {
     setTiles(newTiles);
     
     // Center the grid initially
-    const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight - 175; // Account for header
     const initialScale = Math.min(screenWidth / GRID_TOTAL_SIZE, screenHeight / GRID_TOTAL_SIZE) * 0.8;
     
     setScale(initialScale);
-    setTranslateX(screenWidth / 2);
-    setTranslateY((screenHeight / 2) + 175);
+    setTranslateX(0); // No offset needed since tiles are already positioned correctly
+    setTranslateY(0); // No offset needed since tiles are already positioned correctly
   };
 
   // Native touch event listeners for background tiles
