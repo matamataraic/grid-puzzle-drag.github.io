@@ -470,10 +470,30 @@ export const GridPuzzle = () => {
   }, [isTouchDevice, touchDragActive, draggedTile, tiles, gridTiles, horizontal, vertical, images.length]);
 
   const centerGridOnScreen = (cols: number, rows: number) => {
-    // Reset zoom/pan transforms to avoid conflicts
-    setTranslateX(0);
-    setTranslateY(0);
-    setScale(1);
+    if (isMobile()) {
+      const gridWidth = cols * 50;
+      const gridHeight = rows * 50;
+      
+      // Use same center calculation as background tiles
+      const screenWidth = document.documentElement.clientWidth;
+      const screenHeight = document.documentElement.clientHeight;
+      
+      const centerX = screenWidth / 2;
+      const centerY = (screenHeight - 140) / 2 + 70;
+      
+      // Calculate translation to move grid to center
+      const translateX = centerX - gridWidth / 2;
+      const translateY = centerY - gridHeight / 2;
+      
+      setTranslateX(translateX);
+      setTranslateY(translateY);
+      setScale(1);
+    } else {
+      // Desktop: Reset transforms
+      setTranslateX(0);
+      setTranslateY(0);
+      setScale(1);
+    }
   };
 
   const handleStart = () => {
