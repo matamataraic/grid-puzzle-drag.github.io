@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Info, RotateCcw, Save, Eye } from 'lucide-react';
@@ -76,12 +77,16 @@ export const GridPuzzle = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
   };
 
-  // State for mobile zoom and pan
+  // State for mobile zoom and pan with boundaries
   const [scale, setScale] = useState(1);
   const [translateX, setTranslateX] = useState(0);
   const [translateY, setTranslateY] = useState(0);
   const [lastTouch, setLastTouch] = useState({ x: 0, y: 0, scale: 1 });
-  const [hasGeneratedZoomTiles, setHasGeneratedZoomTiles] = useState(false);
+  
+  // Pre-loaded grid constants
+  const GRID_SIZE = 100; // 100x100 tiles
+  const TILE_SIZE = 51; // 50px + 1px spacing
+  const GRID_TOTAL_SIZE = GRID_SIZE * TILE_SIZE; // Total grid size in pixels
   
   // Touch drag states
   const [touchDragActive, setTouchDragActive] = useState(false);
@@ -130,7 +135,22 @@ export const GridPuzzle = () => {
     }
   }, [images]);
 
-  // Mobile touch handlers for zoom and pan
+  // Calculate pan boundaries based on current scale
+  const getPanBoundaries = () => {
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const scaledGridSize = GRID_TOTAL_SIZE * scale;
+    
+    // Calculate boundaries to keep grid visible
+    const minX = screenWidth - scaledGridSize;
+    const maxX = 0;
+    const minY = screenHeight - scaledGridSize;
+    const maxY = 175; // Account for header
+    
+    return { minX, maxX, minY, maxY };
+  };
+
+  // Mobile touch handlers for zoom and pan with boundaries
   const handleTouchStart = (e) => {
     if (!isMobile()) return;
     
@@ -149,7 +169,6 @@ export const GridPuzzle = () => {
         scale: distance
       });
     }
-    // Single finger interactions are handled by tile touch events
   };
 
   const handleTouchMove = (e) => {
@@ -167,71 +186,56 @@ export const GridPuzzle = () => {
       const centerX = (touch1.clientX + touch2.clientX) / 2;
       const centerY = (touch1.clientY + touch2.clientY) / 2;
 
-      // Scale - limit zoom in to 1.0 (original size), allow zoom out to 0.3
-      const newScale = Math.max(0.3, Math.min(1.0, scale * (distance / lastTouch.scale)));
+      // Scale - calculate min scale to fit entire grid on screen
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight - 175; // Account for header
+      const minScale = Math.min(screenWidth / GRID_TOTAL_SIZE, screenHeight / GRID_TOTAL_SIZE);
+      const maxScale = 1.0;
+      
+      const newScale = Math.max(minScale, Math.min(maxScale, scale * (distance / lastTouch.scale)));
       setScale(newScale);
 
-      // Pan
+      // Pan with boundaries
       const deltaX = centerX - lastTouch.x;
       const deltaY = centerY - lastTouch.y;
-      setTranslateX(prev => prev + deltaX);
-      setTranslateY(prev => prev + deltaY);
+      const newTranslateX = translateX + deltaX;
+      const newTranslateY = translateY + deltaY;
+      
+      const { minX, maxX, minY, maxY } = getPanBoundaries();
+      
+      setTranslateX(Math.max(minX, Math.min(maxX, newTranslateX)));
+      setTranslateY(Math.max(minY, Math.min(maxY, newTranslateY)));
 
       setLastTouch({ x: centerX, y: centerY, scale: distance });
-
-      // Generate new tiles when zoomed out significantly (only once)
-      if (newScale < 0.6 && !hasGeneratedZoomTiles) {
-        generateMoreTilesForZoom();
-        setHasGeneratedZoomTiles(true);
-      }
-      
-      // Reset zoom tiles flag when zooming back in
-      if (newScale > 0.8 && hasGeneratedZoomTiles) {
-        setHasGeneratedZoomTiles(false);
-        // Clean up zoom tiles to prevent memory buildup
-        setTiles(prev => prev.filter(tile => !tile.id.includes('zoom-tile')));
-      }
     }
   };
 
-  const generateMoreTilesForZoom = () => {
-    const newTiles: TilePosition[] = [];
-    const tileSize = 51;
+  // Generate visible tiles based on viewport
+  const getVisibleTiles = () => {
+    if (!isMobile()) return tiles; // Return all tiles for desktop
+    
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
+    const buffer = TILE_SIZE * 2; // Buffer around viewport
     
-    // Calculate grid bounds based on current view and scale
-    const viewportCols = Math.ceil(screenWidth / tileSize / scale) + 5;
-    const viewportRows = Math.ceil(screenHeight / tileSize / scale) + 5;
+    // Calculate viewport bounds in grid coordinates
+    const viewLeft = (-translateX / scale) - buffer;
+    const viewRight = (-translateX + screenWidth) / scale + buffer;
+    const viewTop = (-translateY / scale) - buffer;
+    const viewBottom = (-translateY + screenHeight) / scale + buffer;
     
-    // Generate tiles in a larger area around the current view
-    const startCol = Math.floor(-translateX / tileSize / scale) - viewportCols;
-    const endCol = Math.floor(-translateX / tileSize / scale) + viewportCols;
-    const startRow = Math.floor(-translateY / tileSize / scale) - viewportRows;
-    const endRow = Math.floor(-translateY / tileSize / scale) + viewportRows;
+    // Convert to grid indices
+    const startCol = Math.max(0, Math.floor(viewLeft / TILE_SIZE));
+    const endCol = Math.min(GRID_SIZE - 1, Math.ceil(viewRight / TILE_SIZE));
+    const startRow = Math.max(0, Math.floor(viewTop / TILE_SIZE));
+    const endRow = Math.min(GRID_SIZE - 1, Math.ceil(viewBottom / TILE_SIZE));
     
-    for (let row = startRow; row <= endRow; row++) {
-      for (let col = startCol; col <= endCol; col++) {
-        // Check if tile already exists at this position
-        const existingTile = tiles.find(t => 
-          Math.abs(t.x - col * tileSize) < 1 && Math.abs(t.y - row * tileSize) < 1
-        );
-        
-        if (!existingTile) {
-          newTiles.push({
-            id: `zoom-tile-${Date.now()}-${row}-${col}-${Math.random()}`,
-            x: col * tileSize,
-            y: row * tileSize,
-            rotation: Math.floor(Math.random() * 4) * 90,
-            imageIndex: Math.floor(Math.random() * images.length),
-          });
-        }
-      }
-    }
-    
-    if (newTiles.length > 0) {
-      setTiles(prev => [...prev, ...newTiles]);
-    }
+    // Return only visible tiles
+    return tiles.filter(tile => {
+      const col = Math.floor(tile.x / TILE_SIZE);
+      const row = Math.floor(tile.y / TILE_SIZE);
+      return col >= startCol && col <= endCol && row >= startRow && row <= endRow;
+    });
   };
 
   useEffect(() => {
@@ -254,35 +258,38 @@ export const GridPuzzle = () => {
         'https://i.imgur.com/eRSAL3Z.png'
       ];
       setImages(imageUrls);
-      generateRandomTiles(imageUrls);
+      generatePreloadedGrid(imageUrls);
     };
     loadImages();
   }, []);
 
-  const generateRandomTiles = (loadedImages: string[]) => {
+  // Generate the pre-loaded 100x100 grid
+  const generatePreloadedGrid = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
     
-    const tileSize = 51; // 50px + 1px spacing
-    const cols = Math.ceil(window.innerWidth / tileSize) + 2; // Extra columns for edge coverage
-    const rows = Math.ceil(window.innerHeight / tileSize) + 4; // Extra rows for scrolling
-
-    let index = 0;
-
-    // Generate tiles to cover the entire screen width from left to right
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
+    // Generate 100x100 grid of tiles
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
         newTiles.push({
-          id: `tile-${index}`,
-          x: col * tileSize - tileSize, // Start slightly off-screen left
-          y: row * tileSize,
+          id: `tile-${row}-${col}`,
+          x: col * TILE_SIZE,
+          y: row * TILE_SIZE,
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * loadedImages.length),
         });
-        index++;
       }
     }
 
     setTiles(newTiles);
+    
+    // Center the grid initially
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight - 175; // Account for header
+    const initialScale = Math.min(screenWidth / GRID_TOTAL_SIZE, screenHeight / GRID_TOTAL_SIZE) * 0.8;
+    
+    setScale(initialScale);
+    setTranslateX((screenWidth - GRID_TOTAL_SIZE * initialScale) / 2);
+    setTranslateY(175 + (screenHeight - GRID_TOTAL_SIZE * initialScale) / 2);
   };
 
   // Native touch event listeners for background tiles
@@ -400,29 +407,18 @@ export const GridPuzzle = () => {
           setGridTiles(updatedGrid);
           
           // Replace with new random tile
-          const newTile: TilePosition = {
-            id: `tile-${Date.now()}`,
-            x: draggedTileData.x,
-            y: draggedTileData.y,
-            rotation: Math.floor(Math.random() * 4) * 90,
-            imageIndex: Math.floor(Math.random() * images.length),
-          };
-          
-          setTiles(prev => prev.filter(t => t.id !== draggedTile).concat([newTile]));
+          setTiles(prev => prev.map(t => 
+            t.id === draggedTile 
+              ? { ...t, rotation: Math.floor(Math.random() * 4) * 90, imageIndex: Math.floor(Math.random() * images.length) }
+              : t
+          ));
         } else {
           // Replace with new random tile if dropped outside valid grid
-          const draggedTileData = tiles.find(t => t.id === draggedTile);
-          if (draggedTileData) {
-            const newTile: TilePosition = {
-              id: `tile-${Date.now()}`,
-              x: draggedTileData.x,
-              y: draggedTileData.y,
-              rotation: Math.floor(Math.random() * 4) * 90,
-              imageIndex: Math.floor(Math.random() * images.length),
-            };
-            
-            setTiles(prev => prev.filter(t => t.id !== draggedTile).concat([newTile]));
-          }
+          setTiles(prev => prev.map(t => 
+            t.id === draggedTile 
+              ? { ...t, rotation: Math.floor(Math.random() * 4) * 90, imageIndex: Math.floor(Math.random() * images.length) }
+              : t
+          ));
         }
       }
 
@@ -617,29 +613,19 @@ export const GridPuzzle = () => {
       
       setGridTiles(updatedGrid);
       
-      // Remove the dragged tile from floating tiles and replace it with a new random one
-      const newTile: TilePosition = {
-        id: `tile-${Date.now()}`,
-        x: draggedTile.x,
-        y: draggedTile.y,
-        rotation: Math.floor(Math.random() * 4) * 90,
-        imageIndex: Math.floor(Math.random() * images.length),
-      };
-      
-      setTiles(prev => prev.filter(t => t.id !== tileId).concat([newTile]));
+      // Replace the dragged tile with a new random one
+      setTiles(prev => prev.map(t => 
+        t.id === tileId 
+          ? { ...t, rotation: Math.floor(Math.random() * 4) * 90, imageIndex: Math.floor(Math.random() * images.length) }
+          : t
+      ));
     } else {
       // If dropped outside the grid, replace the original tile with a new random one
-      if (draggedTile) {
-        const newTile: TilePosition = {
-          id: `tile-${Date.now()}`,
-          x: draggedTile.x,
-          y: draggedTile.y,
-          rotation: Math.floor(Math.random() * 4) * 90,
-          imageIndex: Math.floor(Math.random() * images.length),
-        };
-        
-        setTiles(prev => prev.filter(t => t.id !== tileId).concat([newTile]));
-      }
+      setTiles(prev => prev.map(t => 
+        t.id === tileId 
+          ? { ...t, rotation: Math.floor(Math.random() * 4) * 90, imageIndex: Math.floor(Math.random() * images.length) }
+          : t
+      ));
     }
   };
 
@@ -680,16 +666,13 @@ export const GridPuzzle = () => {
 
     if (placed) {
       setGridTiles(updatedGrid);
-      setTiles(prev => prev.filter(t => t.id !== tileId));
       
-      const newTile: TilePosition = {
-        id: `tile-${Date.now()}`,
-        x: tile.x,
-        y: tile.y,
-        rotation: Math.floor(Math.random() * 4) * 90,
-        imageIndex: Math.floor(Math.random() * images.length),
-      };
-      setTiles(prev => [...prev, newTile]);
+      // Replace with new random tile
+      setTiles(prev => prev.map(t => 
+        t.id === tileId 
+          ? { ...t, rotation: Math.floor(Math.random() * 4) * 90, imageIndex: Math.floor(Math.random() * images.length) }
+          : t
+      ));
     }
   };
 
@@ -709,8 +692,6 @@ export const GridPuzzle = () => {
   const handleRandom = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-
     
     const randomH = Math.floor(Math.random() * 9) + 2;
     const randomV = Math.floor(Math.random() * 9) + 2;
@@ -875,6 +856,9 @@ export const GridPuzzle = () => {
     }
   };
 
+  // Get only visible tiles for rendering
+  const visibleTiles = getVisibleTiles();
+
   return (
     <div 
       className={`min-h-screen bg-neutral-50 w-full ${isMobile() ? 'overflow-hidden' : 'overflow-auto'}`}
@@ -972,8 +956,8 @@ export const GridPuzzle = () => {
             height: '100%'
           }}
         >
-          {/* Background tiles */}
-          {tiles.map((tile) => (
+          {/* Background tiles - only render visible ones for performance */}
+          {visibleTiles.map((tile) => (
             <img
               key={tile.id}
               data-tile-id={tile.id}
