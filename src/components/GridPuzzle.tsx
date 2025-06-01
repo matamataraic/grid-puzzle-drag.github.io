@@ -279,17 +279,31 @@ export const GridPuzzle = () => {
     const newTiles: TilePosition[] = [];
     const halfGrid = GRID_SIZE / 2;
     
-    // Calculate the main grid's horizontal center position (same as main grid centering logic)
-    const screenWidth = window.innerWidth;
-    const mainGridCenterX = screenWidth / 2;
+    // Calculate center position based on device type
+    let centerX: number;
+    let centerY: number;
     
-    // Generate 100x100 grid of tiles centered around main grid's horizontal center
+    if (isMobile()) {
+      // Mobile: Use document dimensions and account for header/footer
+      const screenWidth = document.documentElement.clientWidth;
+      const screenHeight = document.documentElement.clientHeight;
+      
+      centerX = screenWidth / 2;
+      centerY = (screenHeight - 140) / 2 + 70; // Account for header (140px total UI space)
+    } else {
+      // Desktop: Use existing logic
+      const screenWidth = window.innerWidth;
+      centerX = screenWidth / 2;
+      centerY = 175; // Start from same Y as main grid
+    }
+    
+    // Generate 100x100 grid of tiles centered around calculated center
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
         newTiles.push({
           id: `tile-${row}-${col}`,
-          x: mainGridCenterX + (col - halfGrid) * TILE_SIZE,
-          y: 175 + (row - halfGrid) * TILE_SIZE, // Start from same Y as main grid
+          x: centerX + (col - halfGrid) * TILE_SIZE,
+          y: centerY + (row - halfGrid) * TILE_SIZE,
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * loadedImages.length),
         });
@@ -299,7 +313,8 @@ export const GridPuzzle = () => {
     setTiles(newTiles);
     
     // Center the grid initially
-    const screenHeight = window.innerHeight - 175; // Account for header
+    const screenWidth = isMobile() ? document.documentElement.clientWidth : window.innerWidth;
+    const screenHeight = isMobile() ? document.documentElement.clientHeight - 140 : window.innerHeight - 175;
     const initialScale = Math.min(screenWidth / GRID_TOTAL_SIZE, screenHeight / GRID_TOTAL_SIZE) * 0.8;
     
     setScale(initialScale);
