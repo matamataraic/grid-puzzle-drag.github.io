@@ -138,14 +138,15 @@ export const GridPuzzle = () => {
   // Calculate pan boundaries based on current scale
   const getPanBoundaries = () => {
     const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
+    const screenHeight = window.innerHeight - 175; // Available height excluding header
     const scaledGridSize = GRID_TOTAL_SIZE * scale;
+    const halfScaledGrid = scaledGridSize / 2;
     
-    // Calculate boundaries to keep grid visible
-    const minX = screenWidth - scaledGridSize;
-    const maxX = 0;
-    const minY = screenHeight - scaledGridSize;
-    const maxY = 175; // Account for header
+    // Calculate boundaries to keep grid centered and prevent white space
+    const minX = screenWidth / 2 - halfScaledGrid;
+    const maxX = screenWidth / 2 + halfScaledGrid;
+    const minY = 175 + screenHeight / 2 - halfScaledGrid;
+    const maxY = 175 + screenHeight / 2 + halfScaledGrid;
     
     return { minX, maxX, minY, maxY };
   };
@@ -193,18 +194,27 @@ export const GridPuzzle = () => {
       const maxScale = 1.0;
       
       const newScale = Math.max(minScale, Math.min(maxScale, scale * (distance / lastTouch.scale)));
+      
+      // Update scale first
       setScale(newScale);
 
-      // Pan with boundaries
+      // Pan with boundaries - constrain to grid edges
       const deltaX = centerX - lastTouch.x;
       const deltaY = centerY - lastTouch.y;
-      const newTranslateX = translateX + deltaX;
-      const newTranslateY = translateY + deltaY;
       
-      const { minX, maxX, minY, maxY } = getPanBoundaries();
+      // Calculate new position
+      const potentialX = translateX + deltaX;
+      const potentialY = translateY + deltaY;
       
-      setTranslateX(Math.max(minX, Math.min(maxX, newTranslateX)));
-      setTranslateY(Math.max(minY, Math.min(maxY, newTranslateY)));
+      // Calculate grid boundaries at new scale
+      const halfScaledGrid = (GRID_TOTAL_SIZE * newScale) / 2;
+      const boundedX = Math.max(screenWidth / 2 - halfScaledGrid, 
+                               Math.min(screenWidth / 2 + halfScaledGrid, potentialX));
+      const boundedY = Math.max(175 + screenHeight / 2 - halfScaledGrid, 
+                               Math.min(175 + screenHeight / 2 + halfScaledGrid, potentialY));
+      
+      setTranslateX(boundedX);
+      setTranslateY(boundedY);
 
       setLastTouch({ x: centerX, y: centerY, scale: distance });
     }
@@ -217,18 +227,19 @@ export const GridPuzzle = () => {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     const buffer = TILE_SIZE * 2; // Buffer around viewport
+    const halfGrid = GRID_SIZE / 2;
     
-    // Calculate viewport bounds in grid coordinates
-    const viewLeft = (-translateX / scale) - buffer;
-    const viewRight = (-translateX + screenWidth) / scale + buffer;
-    const viewTop = (-translateY / scale) - buffer;
-    const viewBottom = (-translateY + screenHeight) / scale + buffer;
+    // Calculate viewport bounds in grid coordinates (accounting for centered grid)
+    const viewLeft = (screenWidth / 2 - translateX) / scale - buffer;
+    const viewRight = (screenWidth / 2 - translateX + screenWidth) / scale + buffer;
+    const viewTop = (175 + screenHeight / 2 - translateY) / scale - buffer;
+    const viewBottom = (175 + screenHeight / 2 - translateY + screenHeight) / scale + buffer;
     
-    // Convert to grid indices
-    const startCol = Math.max(0, Math.floor(viewLeft / TILE_SIZE));
-    const endCol = Math.min(GRID_SIZE - 1, Math.ceil(viewRight / TILE_SIZE));
-    const startRow = Math.max(0, Math.floor(viewTop / TILE_SIZE));
-    const endRow = Math.min(GRID_SIZE - 1, Math.ceil(viewBottom / TILE_SIZE));
+    // Convert to grid indices (accounting for negative coordinates)
+    const startCol = Math.max(-halfGrid, Math.floor(viewLeft / TILE_SIZE));
+    const endCol = Math.min(halfGrid - 1, Math.ceil(viewRight / TILE_SIZE));
+    const startRow = Math.max(-halfGrid, Math.floor(viewTop / TILE_SIZE));
+    const endRow = Math.min(halfGrid - 1, Math.ceil(viewBottom / TILE_SIZE));
     
     // Return only visible tiles
     return tiles.filter(tile => {
@@ -263,17 +274,18 @@ export const GridPuzzle = () => {
     loadImages();
   }, []);
 
-  // Generate the pre-loaded 100x100 grid
+  // Generate the pre-loaded 100x100 grid centered around (0,0)
   const generatePreloadedGrid = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
+    const halfGrid = GRID_SIZE / 2;
     
-    // Generate 100x100 grid of tiles
+    // Generate 100x100 grid of tiles centered around (0,0)
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
         newTiles.push({
           id: `tile-${row}-${col}`,
-          x: col * TILE_SIZE,
-          y: row * TILE_SIZE,
+          x: (col - halfGrid) * TILE_SIZE,
+          y: (row - halfGrid) * TILE_SIZE,
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * loadedImages.length),
         });
@@ -288,8 +300,8 @@ export const GridPuzzle = () => {
     const initialScale = Math.min(screenWidth / GRID_TOTAL_SIZE, screenHeight / GRID_TOTAL_SIZE) * 0.8;
     
     setScale(initialScale);
-    setTranslateX((screenWidth - GRID_TOTAL_SIZE * initialScale) / 2);
-    setTranslateY(175 + (screenHeight - GRID_TOTAL_SIZE * initialScale) / 2);
+    setTranslateX(screenWidth / 2);
+    setTranslateY((screenHeight / 2) + 175);
   };
 
   // Native touch event listeners for background tiles
