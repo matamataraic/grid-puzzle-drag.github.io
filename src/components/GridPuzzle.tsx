@@ -444,26 +444,10 @@ export const GridPuzzle = () => {
   }, [isTouchDevice, touchDragActive, draggedTile, tiles, gridTiles, horizontal, vertical, images.length]);
 
   const centerGridOnScreen = (cols: number, rows: number) => {
-    if (isMobile()) {
-      const gridWidth = cols * 50;
-      const gridHeight = rows * 50;
-      
-      // Use document.documentElement dimensions for mobile browsers
-      const screenWidth = document.documentElement.clientWidth;
-      const screenHeight = document.documentElement.clientHeight;
-      
-      // Account for header (approximately 140px) and footer space on mobile
-      const availableHeight = screenHeight - 140;
-      
-      // Calculate center position in available space
-      const centerX = (screenWidth - gridWidth) / 2;
-      const centerY = (availableHeight - gridHeight) / 2 + 70; // Add header offset
-      
-      // Set translation to center the grid (negative values to move grid to center)
-      setTranslateX(-centerX);
-      setTranslateY(-centerY);
-      setScale(1);
-    }
+    // Reset zoom/pan transforms to avoid conflicts
+    setTranslateX(0);
+    setTranslateY(0);
+    setScale(1);
   };
 
   const handleStart = () => {
@@ -1015,7 +999,7 @@ export const GridPuzzle = () => {
             />
           ))}
 
-          {/* Grid - positioned to be centered in viewport */}
+          {/* Grid - positioned consistently for all devices */}
           {isGridGenerated && (
             <div
               ref={gridRef}
@@ -1026,7 +1010,7 @@ export const GridPuzzle = () => {
                 gridTemplateColumns: `repeat(${horizontal}, 50px)`,
                 gridTemplateRows: `repeat(${vertical}, 50px)`,
                 left: `${(window.innerWidth - (parseInt(horizontal) * 50)) / 2}px`,
-                top: isMobile() ? `${(window.innerHeight - (parseInt(vertical) * 50)) / 2}px` : '175px',
+                top: '175px',
                 borderWidth: '1px',
                 borderColor: 'white'
               }}
