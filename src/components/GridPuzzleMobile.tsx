@@ -141,9 +141,8 @@ export const GridPuzzleMobile = () => {
 
     setTiles(newTiles);
     
-    // Set initial scale to fit grid on screen
-    const initialScale = Math.min(screenWidth / GRID_TOTAL_SIZE, availableHeight / GRID_TOTAL_SIZE) * 0.8;
-    setScale(initialScale);
+    // Set initial scale to 1.0 for comfortable viewing (original scale)
+    setScale(1.0);
     setTranslateX(0);
     setTranslateY(0);
   };
@@ -178,11 +177,9 @@ export const GridPuzzleMobile = () => {
       const centerX = (touch1.clientX + touch2.clientX) / 2;
       const centerY = (touch1.clientY + touch2.clientY) / 2;
 
-      // Scale
-      const screenWidth = window.innerWidth;
-      const screenHeight = window.innerHeight - 175;
-      const minScale = Math.min(screenWidth / GRID_TOTAL_SIZE, screenHeight / GRID_TOTAL_SIZE);
-      const maxScale = 1.0;
+      // Scale - allow zooming from 0.1x to 2.0x
+      const minScale = 0.1; // Allow zooming out to see more tiles
+      const maxScale = 2.0; // Allow zooming in for detail
       
       const newScale = Math.max(minScale, Math.min(maxScale, scale * (distance / lastTouch.scale)));
       setScale(newScale);
