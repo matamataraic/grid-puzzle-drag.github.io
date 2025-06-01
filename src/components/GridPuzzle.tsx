@@ -284,12 +284,12 @@ export const GridPuzzle = () => {
     let centerY: number;
     
     if (isMobile()) {
-      // Mobile: Use document dimensions and account for header/footer
+      // Mobile: Center background tiles in available viewport (independent of main grid)
       const screenWidth = document.documentElement.clientWidth;
       const screenHeight = document.documentElement.clientHeight;
       
       centerX = screenWidth / 2;
-      centerY = (screenHeight - 140) / 2 + 70; // Account for header (140px total UI space)
+      centerY = screenHeight / 2; // Center of entire mobile viewport
     } else {
       // Desktop: Use existing logic
       const screenWidth = window.innerWidth;
