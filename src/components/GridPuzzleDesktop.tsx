@@ -599,7 +599,7 @@ export const GridPuzzleDesktop = () => {
           {isGridGenerated && (
             <div
               ref={gridRef}
-              className="absolute border border-BLACK bg-white z-10"
+              className="fixed border border-BLACK bg-white z-10"
               style={{
                 display: 'grid',
                 gridTemplateColumns: `repeat(${horizontal}, 50px)`,
