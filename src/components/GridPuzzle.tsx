@@ -280,22 +280,19 @@ export const GridPuzzle = () => {
     loadImages();
   }, []);
 
-  // Generate the pre-loaded 100x100 grid for mobile (center outwards like Landing page)
+  // Generate the pre-loaded 100x100 grid for mobile (center at bottom of header)
   const generatePreloadedGridMobile = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
+    const screenWidth = document.documentElement.clientWidth;
     
-    // Calculate center position for mobile viewport - match main grid positioning
+    // Center at bottom of header, extend 50 tiles in each direction
     const centerX = screenWidth / 2;
-    const availableHeight = screenHeight - 175; // Space below header
-    const centerY = 175 + (availableHeight / 2); // Center in available space below header
+    const centerY = 140; // Bottom of header
     
-    // Generate from center outwards like Landing page
     const halfGrid = GRID_SIZE / 2;
     let index = 0;
     
-    // Start from center and build outward to ensure center stays centered
+    // Generate 100x100 grid: 50 tiles in each direction from center
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
         newTiles.push({
@@ -311,9 +308,8 @@ export const GridPuzzle = () => {
 
     setTiles(newTiles);
     
-    // Set initial scale and position for mobile
-    const initialScale = Math.min(screenWidth / GRID_TOTAL_SIZE, availableHeight / GRID_TOTAL_SIZE) * 0.8;
-    setScale(initialScale);
+    // Keep scale at 1 as requested
+    setScale(1);
     setTranslateX(0);
     setTranslateY(0);
   };
