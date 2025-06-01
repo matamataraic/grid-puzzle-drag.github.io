@@ -78,7 +78,16 @@ export const GridPuzzleMobile = () => {
 
   // Mobile grid constants - viewport-based approach
   const TILE_SIZE = 51;
-  const BUFFER_TILES = 3; // Extra tiles in each direction for smooth panning
+  
+  // Calculate buffer based on screen size (max 10 tiles)
+  const calculateBufferTiles = () => {
+    const screenTilesX = Math.ceil(window.innerWidth / TILE_SIZE);
+    const screenTilesY = Math.ceil(window.innerHeight / TILE_SIZE);
+    const maxScreenTiles = Math.max(screenTilesX, screenTilesY);
+    return Math.min(10, Math.max(3, Math.floor(maxScreenTiles * 0.3))); // 30% of screen size, max 10 tiles
+  };
+  
+  const [bufferTiles] = useState(calculateBufferTiles());
 
   // Touch drag states
   const [touchDragActive, setTouchDragActive] = useState(false);
@@ -116,12 +125,12 @@ export const GridPuzzleMobile = () => {
     const newTiles: TilePosition[] = [];
     
     // Calculate how many tiles needed for viewport plus buffer
-    const tilesPerRow = Math.ceil(window.innerWidth / TILE_SIZE) + (BUFFER_TILES * 2);
-    const tilesPerCol = Math.ceil(window.innerHeight / TILE_SIZE) + (BUFFER_TILES * 2);
+    const tilesPerRow = Math.ceil(window.innerWidth / TILE_SIZE) + (bufferTiles * 2);
+    const tilesPerCol = Math.ceil(window.innerHeight / TILE_SIZE) + (bufferTiles * 2);
     
     // Start from top-left of buffered viewport
-    const startX = -BUFFER_TILES * TILE_SIZE;
-    const startY = -BUFFER_TILES * TILE_SIZE;
+    const startX = -bufferTiles * TILE_SIZE;
+    const startY = -bufferTiles * TILE_SIZE;
     
     let index = 0;
     for (let row = 0; row < tilesPerCol; row++) {
@@ -198,18 +207,44 @@ export const GridPuzzleMobile = () => {
         const deltaX = centerX - lastTouch.x;
         const deltaY = centerY - lastTouch.y;
 
-        const newTranslateX = translateX + deltaX;
-        const newTranslateY = translateY + deltaY;
+        // Calculate potential new position
+        const potentialX = translateX + deltaX;
+        const potentialY = translateY + deltaY;
 
-        setTranslateX(newTranslateX);
-        setTranslateY(newTranslateY);
+        // Apply boundary constraints
+        const boundaries = getPanBoundaries();
+        const boundedX = Math.max(boundaries.minX, Math.min(boundaries.maxX, potentialX));
+        const boundedY = Math.max(boundaries.minY, Math.min(boundaries.maxY, potentialY));
 
-        // Reposition tiles if needed
-        repositionTilesIfNeeded(newTranslateX, newTranslateY);
+        setTranslateX(boundedX);
+        setTranslateY(boundedY);
+
+        // Only reposition tiles if we're not at boundaries
+        if (boundedX === potentialX && boundedY === potentialY) {
+          repositionTilesIfNeeded(boundedX, boundedY);
+        }
       }
 
       setLastTouch({ x: centerX, y: centerY, scale: distance });
     }
+  };
+
+  // Calculate pan boundaries to prevent white space
+  const getPanBoundaries = () => {
+    const tilesPerRow = Math.ceil(window.innerWidth / TILE_SIZE) + (bufferTiles * 2);
+    const tilesPerCol = Math.ceil(window.innerHeight / TILE_SIZE) + (bufferTiles * 2);
+    
+    // Calculate total tile area dimensions
+    const totalTileWidth = tilesPerRow * TILE_SIZE;
+    const totalTileHeight = tilesPerCol * TILE_SIZE;
+    
+    // Calculate boundaries - tiles start at negative buffer position
+    const minX = -(bufferTiles * TILE_SIZE);
+    const maxX = minX + totalTileWidth - window.innerWidth;
+    const minY = -(bufferTiles * TILE_SIZE);
+    const maxY = minY + totalTileHeight - window.innerHeight;
+    
+    return { minX, maxX, minY, maxY };
   };
 
   // Reposition tiles when user pans beyond threshold
