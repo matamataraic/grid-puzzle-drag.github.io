@@ -280,21 +280,29 @@ export const GridPuzzle = () => {
     loadImages();
   }, []);
 
-  // Generate the pre-loaded 100x100 grid for mobile (center at bottom of header)
+  // Generate the pre-loaded 50x50 grid for mobile (using Landing page logic)
   const generatePreloadedGridMobile = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
-    const screenWidth = document.documentElement.clientWidth;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
     
-    // Center at bottom of header, extend 50 tiles in each direction
+    // Calculate available viewport space like Landing page
+    const headerHeight = 140;
+    const footerHeight = 64; // Mobile footer height
+    const availableHeight = screenHeight - headerHeight - footerHeight;
+    
+    // Center in available space between header and footer
     const centerX = screenWidth / 2;
-    const centerY = 140; // Bottom of header
+    const centerY = headerHeight + (availableHeight / 2);
     
-    const halfGrid = GRID_SIZE / 2;
+    // Generate 50x50 grid (25 tiles in each direction from center)
+    const MOBILE_GRID_SIZE = 50;
+    const halfGrid = MOBILE_GRID_SIZE / 2;
     let index = 0;
     
-    // Generate 100x100 grid: 50 tiles in each direction from center
-    for (let row = 0; row < GRID_SIZE; row++) {
-      for (let col = 0; col < GRID_SIZE; col++) {
+    // Generate from center outwards like Landing page
+    for (let row = 0; row < MOBILE_GRID_SIZE; row++) {
+      for (let col = 0; col < MOBILE_GRID_SIZE; col++) {
         newTiles.push({
           id: `tile-${index}`,
           x: centerX + (col - halfGrid) * TILE_SIZE,
@@ -308,20 +316,10 @@ export const GridPuzzle = () => {
 
     setTiles(newTiles);
     
-    // Keep scale at 1 as requested
+    // No transforms needed - tiles positioned directly in viewport coordinates
     setScale(1);
-    
-    // Calculate transform to center the grid in the mobile viewport
-    const screenHeight = window.innerHeight;
-    const availableHeight = screenHeight - 140; // Space below header
-    const viewportCenterY = 140 + (availableHeight / 2); // Center of visible area
-    
-    // Offset to move grid center to viewport center
-    const offsetX = 0; // Grid is already horizontally centered
-    const offsetY = viewportCenterY - centerY; // Move grid center to viewport center
-    
-    setTranslateX(offsetX);
-    setTranslateY(offsetY);
+    setTranslateX(0);
+    setTranslateY(0);
   };
 
   // Generate the pre-loaded grid for desktop
