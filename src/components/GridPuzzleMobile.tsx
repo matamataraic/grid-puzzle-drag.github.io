@@ -112,40 +112,44 @@ export const GridPuzzleMobile = () => {
     loadImages();
   }, []);
 
-  // Generate the full 100x100 grid immediately for mobile
+  // Generate the pre-loaded 50x50 grid for mobile (using Landing page logic)
   const generatePreloadedGridMobile = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-
-    // Calculate available space between header (155px) and footer (195px)
-    const headerHeight = 155;
-    const footerHeight = 195;
+    
+    // Calculate available viewport space like Landing page
+    const headerHeight = 140;
+    const footerHeight = 64; // Mobile footer height
     const availableHeight = screenHeight - headerHeight - footerHeight;
-
-    // Center geometric center of grid in available viewport space
+    
+    // Center in available space between header and footer
     const centerX = screenWidth / 2;
     const centerY = headerHeight + (availableHeight / 2);
-
-    // Generate from center outwards
-    const halfGrid = GRID_SIZE / 2;
-
-    for (let row = 0; row < GRID_SIZE; row++) {
-      for (let col = 0; col < GRID_SIZE; col++) {
+    
+    // Generate 50x50 grid (25 tiles in each direction from center)
+    const MOBILE_GRID_SIZE = 50;
+    const halfGrid = MOBILE_GRID_SIZE / 2;
+    let index = 0;
+    
+    // Generate from center outwards like Landing page
+    for (let row = 0; row < MOBILE_GRID_SIZE; row++) {
+      for (let col = 0; col < MOBILE_GRID_SIZE; col++) {
         newTiles.push({
-          id: `tile-${row}-${col}`,
+          id: `tile-${index}`,
           x: centerX + (col - halfGrid) * TILE_SIZE,
           y: centerY + (row - halfGrid) * TILE_SIZE,
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * loadedImages.length),
         });
+        index++;
       }
     }
 
     setTiles(newTiles);
-
-    // Set initial scale to 1.0 for immediate visibility (same as desktop)
-    setScale(1.0);
+    
+    // No transforms needed - tiles positioned directly in viewport coordinates
+    setScale(1);
     setTranslateX(0);
     setTranslateY(0);
   };
