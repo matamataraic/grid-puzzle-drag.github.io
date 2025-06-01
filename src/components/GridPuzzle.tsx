@@ -284,14 +284,12 @@ export const GridPuzzle = () => {
     let centerY: number;
     
     if (isMobile()) {
-      // Mobile: Center background tiles between header and footer
+      // Mobile: Use same centering logic as main grid
       const screenWidth = document.documentElement.clientWidth;
       const screenHeight = document.documentElement.clientHeight;
       
-      centerX = screenWidth / 2;
-      // Center vertically in available space between header (~140px) and footer
-      const availableHeight = screenHeight - 140;
-      centerY = 70 + availableHeight / 2; // Header offset + center of remaining space
+      centerX = (screenWidth) / 2;
+      centerY = (screenHeight) / 2;
     } else {
       // Desktop: Use existing logic
       const screenWidth = window.innerWidth;
