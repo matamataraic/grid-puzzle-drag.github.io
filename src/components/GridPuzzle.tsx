@@ -310,8 +310,18 @@ export const GridPuzzle = () => {
     
     // Keep scale at 1 as requested
     setScale(1);
-    setTranslateX(0);
-    setTranslateY(0);
+    
+    // Calculate transform to center the grid in the mobile viewport
+    const screenHeight = window.innerHeight;
+    const availableHeight = screenHeight - 140; // Space below header
+    const viewportCenterY = 140 + (availableHeight / 2); // Center of visible area
+    
+    // Offset to move grid center to viewport center
+    const offsetX = 0; // Grid is already horizontally centered
+    const offsetY = viewportCenterY - centerY; // Move grid center to viewport center
+    
+    setTranslateX(offsetX);
+    setTranslateY(offsetY);
   };
 
   // Generate the pre-loaded grid for desktop
