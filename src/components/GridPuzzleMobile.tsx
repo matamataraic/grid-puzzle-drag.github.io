@@ -117,10 +117,15 @@ export const GridPuzzleMobile = () => {
     const newTiles: TilePosition[] = [];
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-
-    // Center in available space below header (same as desktop logic)
+    
+    // Calculate available space between header (155px) and footer (195px)
+    const headerHeight = 155;
+    const footerHeight = 195;
+    const availableHeight = screenHeight - headerHeight - footerHeight;
+    
+    // Center geometric center of grid in available viewport space
     const centerX = screenWidth / 2;
-    const centerY = 175; // Start from same Y as main grid (desktop logic)
+    const centerY = headerHeight + (availableHeight / 2);
 
     // Generate from center outwards
     const halfGrid = GRID_SIZE / 2;
@@ -829,7 +834,8 @@ export const GridPuzzleMobile = () => {
                 <span className="text-sm">{imageCounts.S0}</span>
                 <span className="text-sm">x 7€</span>
               </div>
-              <span className="text-sm">{(imageCounts.S0 * 7)}€              </div>
+              <span className="text-sm">{(imageCounts.S0 * 7)}€</span>
+            </div>
             <div className="flex flex-col items-center">
               <div className="flex gap-2">
                 <span className="text-sm font-medium">S1:</span>
