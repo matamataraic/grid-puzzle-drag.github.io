@@ -269,33 +269,61 @@ export const GridPuzzle = () => {
         'https://i.imgur.com/eRSAL3Z.png'
       ];
       setImages(imageUrls);
-      generatePreloadedGrid(imageUrls);
+      
+      // On mobile, generate full grid immediately
+      if (isMobile()) {
+        generatePreloadedGridMobile(imageUrls);
+      } else {
+        generatePreloadedGrid(imageUrls);
+      }
     };
     loadImages();
   }, []);
 
-  // Generate the pre-loaded 100x100 grid centered around main grid position
+  // Generate the pre-loaded 100x100 grid for mobile (center outwards like Landing page)
+  const generatePreloadedGridMobile = (loadedImages: string[]) => {
+    const newTiles: TilePosition[] = [];
+    const screenWidth = document.documentElement.clientWidth;
+    const screenHeight = document.documentElement.clientHeight;
+    
+    // Calculate center position for mobile viewport
+    const centerX = screenWidth / 2;
+    const centerY = screenHeight / 2;
+    
+    // Generate from center outwards like Landing page
+    const halfGrid = GRID_SIZE / 2;
+    let index = 0;
+    
+    // Start from center and build outward to ensure center stays centered
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        newTiles.push({
+          id: `tile-${index}`,
+          x: centerX + (col - halfGrid) * TILE_SIZE,
+          y: centerY + (row - halfGrid) * TILE_SIZE,
+          rotation: Math.floor(Math.random() * 4) * 90,
+          imageIndex: Math.floor(Math.random() * loadedImages.length),
+        });
+        index++;
+      }
+    }
+
+    setTiles(newTiles);
+    
+    // Set initial scale and position for mobile
+    const initialScale = Math.min(screenWidth / GRID_TOTAL_SIZE, screenHeight / GRID_TOTAL_SIZE) * 0.8;
+    setScale(initialScale);
+    setTranslateX(0);
+    setTranslateY(0);
+  };
+
+  // Generate the pre-loaded grid for desktop
   const generatePreloadedGrid = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
     const halfGrid = GRID_SIZE / 2;
-    
-    // Calculate center position based on device type
-    let centerX: number;
-    let centerY: number;
-    
-    if (isMobile()) {
-      // Mobile: Use same centering logic as main grid
-      const screenWidth = document.documentElement.clientWidth;
-      const screenHeight = document.documentElement.clientHeight;
-      
-      centerX = (screenWidth) / 2;
-      centerY = (screenHeight) / 2;
-    } else {
-      // Desktop: Use existing logic
-      const screenWidth = window.innerWidth;
-      centerX = screenWidth / 2;
-      centerY = 175; // Start from same Y as main grid
-    }
+    const screenWidth = window.innerWidth;
+    const centerX = screenWidth / 2;
+    const centerY = 175; // Start from same Y as main grid
     
     // Generate 100x100 grid of tiles centered around calculated center
     for (let row = 0; row < GRID_SIZE; row++) {
@@ -313,13 +341,12 @@ export const GridPuzzle = () => {
     setTiles(newTiles);
     
     // Center the grid initially
-    const screenWidth = isMobile() ? document.documentElement.clientWidth : window.innerWidth;
-    const screenHeight = isMobile() ? document.documentElement.clientHeight - 140 : window.innerHeight - 175;
+    const screenHeight = window.innerHeight - 175;
     const initialScale = Math.min(screenWidth / GRID_TOTAL_SIZE, screenHeight / GRID_TOTAL_SIZE) * 0.8;
     
     setScale(initialScale);
-    setTranslateX(0); // No offset needed since tiles are already positioned correctly
-    setTranslateY(0); // No offset needed since tiles are already positioned correctly
+    setTranslateX(0);
+    setTranslateY(0);
   };
 
   // Native touch event listeners for background tiles
