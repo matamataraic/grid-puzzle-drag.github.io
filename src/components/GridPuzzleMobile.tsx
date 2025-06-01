@@ -112,33 +112,22 @@ export const GridPuzzleMobile = () => {
     loadImages();
   }, []);
 
-  // Generate the pre-loaded 50x50 grid for mobile (using Landing page logic)
+  // Generate simple 50x50 background grid for mobile
   const generatePreloadedGridMobile = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
     
-    // Calculate available viewport space like Landing page
-    const headerHeight = 140;
-    const footerHeight = 64; // Mobile footer height
-    const availableHeight = screenHeight - headerHeight - footerHeight;
-    
-    // Center in available space between header and footer
-    const centerX = screenWidth / 2;
-    const centerY = headerHeight + (availableHeight / 2);
+    // Simple center positioning
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
     
     // Generate 50x50 grid (25 tiles in each direction from center)
-    const MOBILE_GRID_SIZE = 50;
-    const halfGrid = MOBILE_GRID_SIZE / 2;
     let index = 0;
-    
-    // Generate from center outwards like Landing page
-    for (let row = 0; row < MOBILE_GRID_SIZE; row++) {
-      for (let col = 0; col < MOBILE_GRID_SIZE; col++) {
+    for (let row = 0; row < 50; row++) {
+      for (let col = 0; col < 50; col++) {
         newTiles.push({
           id: `tile-${index}`,
-          x: centerX + (col - halfGrid) * TILE_SIZE,
-          y: centerY + (row - halfGrid) * TILE_SIZE,
+          x: centerX + (col - 25) * TILE_SIZE,
+          y: centerY + (row - 25) * TILE_SIZE,
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * loadedImages.length),
         });
@@ -148,7 +137,7 @@ export const GridPuzzleMobile = () => {
 
     setTiles(newTiles);
     
-    // No transforms needed - tiles positioned directly in viewport coordinates
+    // No transforms
     setScale(1);
     setTranslateX(0);
     setTranslateY(0);
