@@ -260,7 +260,16 @@ const Landing = () => {
   }, [isTouchDevice, touchDragActive, draggedTile, images.length, staticTiles]);
 
   const handleDesignClick = () => {
-    navigate("/design");
+    // Detect if device is mobile/touch
+    const isMobileDevice = window.innerWidth <= 768;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    // Redirect to appropriate design page
+    if (isMobileDevice || isTouchDevice) {
+      navigate("/design/mobile");
+    } else {
+      navigate("/design/desktop");
+    }
   };
 
   const handleTileClick = (tileId: string) => {
