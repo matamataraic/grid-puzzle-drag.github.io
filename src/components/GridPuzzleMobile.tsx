@@ -76,10 +76,9 @@ export const GridPuzzleMobile = () => {
   const [translateY, setTranslateY] = useState(0);
   const [lastTouch, setLastTouch] = useState({ x: 0, y: 0, scale: 1 });
 
-  // Mobile grid constants
-  const GRID_SIZE = 100;
+  // Mobile grid constants - viewport-based approach
   const TILE_SIZE = 51;
-  const GRID_TOTAL_SIZE = GRID_SIZE * TILE_SIZE;
+  const BUFFER_TILES = 3; // Extra tiles in each direction for smooth panning
 
   // Touch drag states
   const [touchDragActive, setTouchDragActive] = useState(false);
@@ -112,22 +111,25 @@ export const GridPuzzleMobile = () => {
     loadImages();
   }, []);
 
-  // Generate simple 50x50 background grid for mobile
+  // Generate viewport-sized grid for mobile
   const generatePreloadedGridMobile = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
     
-    // Simple center positioning
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
+    // Calculate how many tiles needed for viewport plus buffer
+    const tilesPerRow = Math.ceil(window.innerWidth / TILE_SIZE) + (BUFFER_TILES * 2);
+    const tilesPerCol = Math.ceil(window.innerHeight / TILE_SIZE) + (BUFFER_TILES * 2);
     
-    // Generate 50x50 grid (25 tiles in each direction from center)
+    // Start from top-left of buffered viewport
+    const startX = -BUFFER_TILES * TILE_SIZE;
+    const startY = -BUFFER_TILES * TILE_SIZE;
+    
     let index = 0;
-    for (let row = 0; row < 50; row++) {
-      for (let col = 0; col < 50; col++) {
+    for (let row = 0; row < tilesPerCol; row++) {
+      for (let col = 0; col < tilesPerRow; col++) {
         newTiles.push({
           id: `tile-${index}`,
-          x: centerX + (col - 25) * TILE_SIZE,
-          y: centerY + (row - 25) * TILE_SIZE,
+          x: startX + (col * TILE_SIZE),
+          y: startY + (row * TILE_SIZE),
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * loadedImages.length),
         });
@@ -137,7 +139,7 @@ export const GridPuzzleMobile = () => {
 
     setTiles(newTiles);
     
-    // No transforms
+    // No transforms needed
     setScale(1);
     setTranslateX(0);
     setTranslateY(0);
@@ -196,48 +198,44 @@ export const GridPuzzleMobile = () => {
         const deltaX = centerX - lastTouch.x;
         const deltaY = centerY - lastTouch.y;
 
-        const potentialX = translateX + deltaX;
-        const potentialY = translateY + deltaY;
+        const newTranslateX = translateX + deltaX;
+        const newTranslateY = translateY + deltaY;
 
-        // Calculate boundaries
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        const halfScaledGrid = (GRID_TOTAL_SIZE * scale) / 2;
-        const boundedX = Math.max(screenWidth / 2 - halfScaledGrid, 
-                                 Math.min(screenWidth / 2 + halfScaledGrid, potentialX));
-        const boundedY = Math.max(175 + screenHeight / 2 - halfScaledGrid, 
-                                 Math.min(175 + screenHeight / 2 + halfScaledGrid, potentialY));
+        setTranslateX(newTranslateX);
+        setTranslateY(newTranslateY);
 
-        setTranslateX(boundedX);
-        setTranslateY(boundedY);
+        // Reposition tiles if needed
+        repositionTilesIfNeeded(newTranslateX, newTranslateY);
       }
 
       setLastTouch({ x: centerX, y: centerY, scale: distance });
     }
   };
 
-  // Get visible tiles for performance
-  const getVisibleTiles = () => {
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-    const buffer = TILE_SIZE * 2;
-    const halfGrid = GRID_SIZE / 2;
-
-    const viewLeft = (screenWidth / 2 - translateX) / scale - buffer;
-    const viewRight = (screenWidth / 2 - translateX + screenWidth) / scale + buffer;
-    const viewTop = (175 + screenHeight / 2 - translateY) / scale - buffer;
-    const viewBottom = (175 + screenHeight / 2 - translateY + screenHeight) / scale + buffer;
-
-    const startCol = Math.max(-halfGrid, Math.floor(viewLeft / TILE_SIZE));
-    const endCol = Math.min(halfGrid - 1, Math.ceil(viewRight / TILE_SIZE));
-    const startRow = Math.max(-halfGrid, Math.floor(viewTop / TILE_SIZE));
-    const endRow = Math.min(halfGrid - 1, Math.ceil(viewBottom / TILE_SIZE));
-
-    return tiles.filter(tile => {
-      const col = Math.floor(tile.x / TILE_SIZE);
-      const row = Math.floor(tile.y / TILE_SIZE);
-      return col >= startCol && col <= endCol && row >= startRow && row <= endRow;
-    });
+  // Reposition tiles when user pans beyond threshold
+  const repositionTilesIfNeeded = (currentTranslateX: number, currentTranslateY: number) => {
+    const threshold = TILE_SIZE;
+    
+    if (Math.abs(currentTranslateX) > threshold || Math.abs(currentTranslateY) > threshold) {
+      // Calculate offset for repositioning
+      const offsetX = Math.floor(currentTranslateX / TILE_SIZE) * TILE_SIZE;
+      const offsetY = Math.floor(currentTranslateY / TILE_SIZE) * TILE_SIZE;
+      
+      setTiles(prevTiles => {
+        return prevTiles.map(tile => ({
+          ...tile,
+          x: tile.x - offsetX,
+          y: tile.y - offsetY,
+          // Regenerate content when repositioning
+          rotation: Math.floor(Math.random() * 4) * 90,
+          imageIndex: Math.floor(Math.random() * images.length),
+        }));
+      });
+      
+      // Reset translation to account for repositioning
+      setTranslateX(currentTranslateX - offsetX);
+      setTranslateY(currentTranslateY - offsetY);
+    }
   };
 
   // Native touch handlers for tile dragging
@@ -630,7 +628,7 @@ export const GridPuzzleMobile = () => {
     }
   };
 
-  const visibleTiles = getVisibleTiles();
+  // Use all tiles since we only generate viewport-sized grid
 
   return (
     <div 
@@ -729,8 +727,8 @@ export const GridPuzzleMobile = () => {
             height: '100%'
           }}
         >
-          {/* Background tiles - only render visible ones */}
-          {visibleTiles.map((tile) => (
+          {/* Background tiles - viewport-sized grid */}
+          {tiles.map((tile) => (
             <img
               key={tile.id}
               data-tile-id={tile.id}
