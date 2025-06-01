@@ -117,12 +117,12 @@ export const GridPuzzleMobile = () => {
     const newTiles: TilePosition[] = [];
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    
+
     // Calculate available space between header (155px) and footer (195px)
     const headerHeight = 155;
     const footerHeight = 195;
     const availableHeight = screenHeight - headerHeight - footerHeight;
-    
+
     // Center geometric center of grid in available viewport space
     const centerX = screenWidth / 2;
     const centerY = headerHeight + (availableHeight / 2);
@@ -150,7 +150,7 @@ export const GridPuzzleMobile = () => {
     setTranslateY(0);
   };
 
-  // Mobile touch handlers for zoom and pan
+  // Mobile touch handlers for separate pan and zoom gestures
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       e.preventDefault();
@@ -180,29 +180,44 @@ export const GridPuzzleMobile = () => {
       const centerX = (touch1.clientX + touch2.clientX) / 2;
       const centerY = (touch1.clientY + touch2.clientY) / 2;
 
-      // Scale - allow zooming from 0.1x to 2.0x
-      const minScale = 0.1; // Allow zooming out to see more tiles
-      const maxScale = 2.0; // Allow zooming in for detail
+      // Calculate distance change for zoom detection
+      const distanceChange = Math.abs(distance - lastTouch.scale);
+      const centerMovement = Math.sqrt(
+        Math.pow(centerX - lastTouch.x, 2) + 
+        Math.pow(centerY - lastTouch.y, 2)
+      );
 
-      const newScale = Math.max(minScale, Math.min(maxScale, scale * (distance / lastTouch.scale)));
-      setScale(newScale);
+      // Threshold to distinguish between pan and zoom
+      const zoomThreshold = 10; // Minimum distance change to trigger zoom
+      const panThreshold = 5;   // Minimum movement to trigger pan
 
-      // Pan with boundaries
-      const deltaX = centerX - lastTouch.x;
-      const deltaY = centerY - lastTouch.y;
+      if (distanceChange > zoomThreshold) {
+        // ZOOM: Pinching gesture detected
+        const minScale = 0.3; // Maximum zoom out as requested
+        const maxScale = 1.0; // Maximum zoom in (loaded page scale) as requested
 
-      const potentialX = translateX + deltaX;
-      const potentialY = translateY + deltaY;
+        const newScale = Math.max(minScale, Math.min(maxScale, scale * (distance / lastTouch.scale)));
+        setScale(newScale);
+      } else if (centerMovement > panThreshold && distanceChange <= zoomThreshold) {
+        // PAN: Two fingers moving together without distance change
+        const deltaX = centerX - lastTouch.x;
+        const deltaY = centerY - lastTouch.y;
 
-      // Calculate boundaries
-      const halfScaledGrid = (GRID_TOTAL_SIZE * newScale) / 2;
-      const boundedX = Math.max(screenWidth / 2 - halfScaledGrid, 
-                               Math.min(screenWidth / 2 + halfScaledGrid, potentialX));
-      const boundedY = Math.max(175 + screenHeight / 2 - halfScaledGrid, 
-                               Math.min(175 + screenHeight / 2 + halfScaledGrid, potentialY));
+        const potentialX = translateX + deltaX;
+        const potentialY = translateY + deltaY;
 
-      setTranslateX(boundedX);
-      setTranslateY(boundedY);
+        // Calculate boundaries
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const halfScaledGrid = (GRID_TOTAL_SIZE * scale) / 2;
+        const boundedX = Math.max(screenWidth / 2 - halfScaledGrid, 
+                                 Math.min(screenWidth / 2 + halfScaledGrid, potentialX));
+        const boundedY = Math.max(175 + screenHeight / 2 - halfScaledGrid, 
+                                 Math.min(175 + screenHeight / 2 + halfScaledGrid, potentialY));
+
+        setTranslateX(boundedX);
+        setTranslateY(boundedY);
+      }
 
       setLastTouch({ x: centerX, y: centerY, scale: distance });
     }
