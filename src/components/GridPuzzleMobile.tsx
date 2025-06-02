@@ -79,15 +79,8 @@ export const GridPuzzleMobile = () => {
   // Mobile grid constants - viewport-based approach
   const TILE_SIZE = 51;
   
-  // Calculate buffer based on screen size (max 10 tiles)
-  const calculateBufferTiles = () => {
-    const screenTilesX = Math.ceil(window.innerWidth / TILE_SIZE);
-    const screenTilesY = Math.ceil(window.innerHeight / TILE_SIZE);
-    const maxScreenTiles = Math.max(screenTilesX, screenTilesY);
-    return Math.min(10, Math.max(3, Math.floor(maxScreenTiles * 0.3))); // 30% of screen size, max 10 tiles
-  };
-  
-  const [bufferTiles] = useState(calculateBufferTiles());
+  // Fixed 10 tile buffer
+  const bufferTiles = 10;
 
   // Touch drag states
   const [touchDragActive, setTouchDragActive] = useState(false);
@@ -120,25 +113,29 @@ export const GridPuzzleMobile = () => {
     loadImages();
   }, []);
 
-  // Generate viewport-sized grid for mobile
+  // Generate background grid based on viewport + 10 tile buffer
   const generatePreloadedGridMobile = (loadedImages: string[]) => {
     const newTiles: TilePosition[] = [];
     
-    // Calculate how many tiles needed for viewport plus buffer
-    const tilesPerRow = Math.ceil(window.innerWidth / TILE_SIZE) + (bufferTiles * 2);
-    const tilesPerCol = Math.ceil(window.innerHeight / TILE_SIZE) + (bufferTiles * 2);
+    // Calculate viewport in tiles
+    const viewportWidthTiles = Math.ceil(window.innerWidth / TILE_SIZE);
+    const viewportHeightTiles = Math.ceil(window.innerHeight / TILE_SIZE);
     
-    // Start from top-left of buffered viewport
-    const startX = -bufferTiles * TILE_SIZE;
-    const startY = -bufferTiles * TILE_SIZE;
+    // Add 10 tiles buffer in each direction
+    const gridWidth = viewportWidthTiles + 20;
+    const gridHeight = viewportHeightTiles + 20;
+    
+    // Center the grid
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
     
     let index = 0;
-    for (let row = 0; row < tilesPerCol; row++) {
-      for (let col = 0; col < tilesPerRow; col++) {
+    for (let row = 0; row < gridHeight; row++) {
+      for (let col = 0; col < gridWidth; col++) {
         newTiles.push({
           id: `tile-${index}`,
-          x: startX + (col * TILE_SIZE),
-          y: startY + (row * TILE_SIZE),
+          x: centerX + (col - gridWidth / 2) * TILE_SIZE,
+          y: centerY + (row - gridHeight / 2) * TILE_SIZE,
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * loadedImages.length),
         });
@@ -147,8 +144,6 @@ export const GridPuzzleMobile = () => {
     }
 
     setTiles(newTiles);
-    
-    // No transforms needed
     setScale(1);
     setTranslateX(0);
     setTranslateY(0);
@@ -229,22 +224,31 @@ export const GridPuzzleMobile = () => {
     }
   };
 
-  // Calculate pan boundaries to prevent white space
+  // Calculate pan boundaries based on background grid size
   const getPanBoundaries = () => {
-    const tilesPerRow = Math.ceil(window.innerWidth / TILE_SIZE) + (bufferTiles * 2);
-    const tilesPerCol = Math.ceil(window.innerHeight / TILE_SIZE) + (bufferTiles * 2);
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
     
-    // Calculate total tile area dimensions
-    const totalTileWidth = tilesPerRow * TILE_SIZE;
-    const totalTileHeight = tilesPerCol * TILE_SIZE;
+    // Calculate background grid dimensions
+    const viewportWidthTiles = Math.ceil(screenWidth / TILE_SIZE);
+    const viewportHeightTiles = Math.ceil(screenHeight / TILE_SIZE);
+    const gridWidth = viewportWidthTiles + 20; // +20 for 10 tiles buffer each side
+    const gridHeight = viewportHeightTiles + 20;
     
-    // Calculate boundaries - tiles start at negative buffer position
-    const minX = -(bufferTiles * TILE_SIZE);
-    const maxX = minX + totalTileWidth - window.innerWidth;
-    const minY = -(bufferTiles * TILE_SIZE);
-    const maxY = minY + totalTileHeight - window.innerHeight;
+    // Total grid size in pixels
+    const totalGridWidth = gridWidth * TILE_SIZE;
+    const totalGridHeight = gridHeight * TILE_SIZE;
     
-    return { minX, maxX, minY, maxY };
+    // Pan limits: grid size minus viewport size, divided by 2
+    const maxPanX = (totalGridWidth - screenWidth) / 2;
+    const maxPanY = (totalGridHeight - screenHeight) / 2;
+    
+    return { 
+      minX: -maxPanX, 
+      maxX: maxPanX, 
+      minY: -maxPanY, 
+      maxY: maxPanY 
+    };
   };
 
   // Reposition tiles when user pans beyond threshold
