@@ -128,17 +128,14 @@ export const GridPuzzleMobile = () => {
     const tilesPerRow = Math.ceil(window.innerWidth / TILE_SIZE) + (bufferTiles * 2);
     const tilesPerCol = Math.ceil(window.innerHeight / TILE_SIZE) + (bufferTiles * 2);
     
-    // Start from top-left of buffered viewport
-    const startX = -bufferTiles * TILE_SIZE;
-    const startY = -bufferTiles * TILE_SIZE;
-    
+    // Start tiles at (0,0) for simpler boundary calculation
     let index = 0;
     for (let row = 0; row < tilesPerCol; row++) {
       for (let col = 0; col < tilesPerRow; col++) {
         newTiles.push({
           id: `tile-${index}`,
-          x: startX + (col * TILE_SIZE),
-          y: startY + (row * TILE_SIZE),
+          x: col * TILE_SIZE,
+          y: row * TILE_SIZE,
           rotation: Math.floor(Math.random() * 4) * 90,
           imageIndex: Math.floor(Math.random() * loadedImages.length),
         });
@@ -148,10 +145,10 @@ export const GridPuzzleMobile = () => {
 
     setTiles(newTiles);
     
-    // No transforms needed
+    // Set initial position to show buffer tiles at top-left
     setScale(1);
-    setTranslateX(0);
-    setTranslateY(0);
+    setTranslateX(-bufferTiles * TILE_SIZE);
+    setTranslateY(-bufferTiles * TILE_SIZE);
   };
 
   // Mobile touch handlers for separate pan and zoom gestures
@@ -218,11 +215,6 @@ export const GridPuzzleMobile = () => {
 
         setTranslateX(boundedX);
         setTranslateY(boundedY);
-
-        // Only reposition tiles if we're not at boundaries
-        if (boundedX === potentialX && boundedY === potentialY) {
-          repositionTilesIfNeeded(boundedX, boundedY);
-        }
       }
 
       setLastTouch({ x: centerX, y: centerY, scale: distance });
@@ -238,40 +230,18 @@ export const GridPuzzleMobile = () => {
     const totalTileWidth = tilesPerRow * TILE_SIZE;
     const totalTileHeight = tilesPerCol * TILE_SIZE;
     
-    // Calculate boundaries - tiles start at negative buffer position
-    const minX = -(bufferTiles * TILE_SIZE);
-    const maxX = minX + totalTileWidth - window.innerWidth;
-    const minY = -(bufferTiles * TILE_SIZE);
-    const maxY = minY + totalTileHeight - window.innerHeight;
+    // Tiles start at (0,0), so boundaries are:
+    // minX/Y: show buffer tiles beyond left/top edge of screen
+    // maxX/Y: show buffer tiles beyond right/bottom edge of screen
+    const minX = -bufferTiles * TILE_SIZE;
+    const maxX = -(totalTileWidth - window.innerWidth - (bufferTiles * TILE_SIZE));
+    const minY = -bufferTiles * TILE_SIZE;
+    const maxY = -(totalTileHeight - window.innerHeight - (bufferTiles * TILE_SIZE));
     
     return { minX, maxX, minY, maxY };
   };
 
-  // Reposition tiles when user pans beyond threshold
-  const repositionTilesIfNeeded = (currentTranslateX: number, currentTranslateY: number) => {
-    const threshold = TILE_SIZE;
-    
-    if (Math.abs(currentTranslateX) > threshold || Math.abs(currentTranslateY) > threshold) {
-      // Calculate offset for repositioning
-      const offsetX = Math.floor(currentTranslateX / TILE_SIZE) * TILE_SIZE;
-      const offsetY = Math.floor(currentTranslateY / TILE_SIZE) * TILE_SIZE;
-      
-      setTiles(prevTiles => {
-        return prevTiles.map(tile => ({
-          ...tile,
-          x: tile.x - offsetX,
-          y: tile.y - offsetY,
-          // Regenerate content when repositioning
-          rotation: Math.floor(Math.random() * 4) * 90,
-          imageIndex: Math.floor(Math.random() * images.length),
-        }));
-      });
-      
-      // Reset translation to account for repositioning
-      setTranslateX(currentTranslateX - offsetX);
-      setTranslateY(currentTranslateY - offsetY);
-    }
-  };
+  
 
   // Native touch handlers for tile dragging
   useEffect(() => {
