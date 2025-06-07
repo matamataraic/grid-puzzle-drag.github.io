@@ -762,13 +762,14 @@ export const GridPuzzleMobile = () => {
             <div
               ref={gridRef}
               data-grid-container="true"
-              className="fixed border border-BLACK bg-white z-10"
+              className="absolute border border-BLACK bg-white z-10"
               style={{
                 display: 'grid',
                 gridTemplateColumns: `repeat(${horizontal}, 50px)`,
                 gridTemplateRows: `repeat(${vertical}, 50px)`,
-                left: `${(window.innerWidth - (parseInt(horizontal) * 50)) / 2}px`,
-                top: '175px',
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
                 borderWidth: '1px',
                 borderColor: 'white'
               }}
