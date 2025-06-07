@@ -768,8 +768,8 @@ export const GridPuzzleMobile = () => {
                 display: 'grid',
                 gridTemplateColumns: `repeat(${horizontal}, 50px)`,
                 gridTemplateRows: `repeat(${vertical}, 50px)`,
-                left: `${(window.innerWidth - (parseInt(horizontal) * 50)) / 2 + (bufferTiles * TILE_SIZE)}px`,
-                top: `${(window.innerHeight - (parseInt(vertical) * 50)) / 2 + (bufferTiles * TILE_SIZE)}px`,
+                left: `${(window.innerWidth / 2) - (parseInt(horizontal) * 25)}px`,
+                top: `${(window.innerHeight / 2) - (parseInt(vertical) * 25)}px`,
                 borderWidth: '1px',
                 borderColor: 'white'
               }}
