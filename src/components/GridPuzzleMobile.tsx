@@ -758,46 +758,45 @@ export const GridPuzzleMobile = () => {
           ))}
 
 
-        </div>
+          {/* Grid */}
+          {isGridGenerated && (
+            <div
+              ref={gridRef}
+              data-grid-container="true"
+              className="absolute border border-BLACK bg-white z-10"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${horizontal}, 50px)`,
+                gridTemplateRows: `repeat(${vertical}, 50px)`,
+                left: `${(window.innerWidth - (parseInt(horizontal) * 50)) / 2}px`,
+                top: `${(window.innerHeight - (parseInt(vertical) * 50)) / 2}px`,
+                borderWidth: '1px',
+                borderColor: 'white'
+              }}
+            >
+              {gridTiles.map((row, y) =>
+                row.map((tile, x) => (
+                  <div
+                    key={`${y}-${x}`}
+                    className="border border-white w-[50px] h-[50px]"
+                    style={{ backgroundColor: 'BLACK' }}
+                    onDoubleClick={() => handleGridDoubleClick(y, x)}
+                  >
+                    {tile && (
+                      <img
+                        src={images[tile.imageIndex]}
+                        className="w-full h-full object-cover cursor-pointer"
+                        style={{ transform: `rotate(${tile.rotation}deg)` }}
+                        onClick={() => handleRotate(y, x)}
+                      />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
 
-        {/* Grid - positioned outside transformed container */}
-        {isGridGenerated && (
-          <div
-            ref={gridRef}
-            data-grid-container="true"
-            className="fixed border border-BLACK bg-white z-10"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${horizontal}, 50px)`,
-              gridTemplateRows: `repeat(${vertical}, 50px)`,
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)',
-              borderWidth: '1px',
-              borderColor: 'white'
-            }}
-          >
-            {gridTiles.map((row, y) =>
-              row.map((tile, x) => (
-                <div
-                  key={`${y}-${x}`}
-                  className="border border-white w-[50px] h-[50px]"
-                  style={{ backgroundColor: 'BLACK' }}
-                  onDoubleClick={() => handleGridDoubleClick(y, x)}
-                >
-                  {tile && (
-                    <img
-                      src={images[tile.imageIndex]}
-                      className="w-full h-full object-cover cursor-pointer"
-                      style={{ transform: `rotate(${tile.rotation}deg)` }}
-                      onClick={() => handleRotate(y, x)}
-                    />
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        )}
+        </div>
 
         {/* Floating tile during touch drag */}
         {touchDragActive && draggedTileData && touchPosition && (
