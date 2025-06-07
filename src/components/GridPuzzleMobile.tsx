@@ -193,7 +193,17 @@ export const GridPuzzleMobile = () => {
 
       if (distanceChange > zoomThreshold) {
         // ZOOM: Clear pinching gesture detected
-        const minScale = 0.3; // Maximum zoom out as requested
+        // Calculate minimum scale to fit entire grid within viewport
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const viewportWidthTiles = Math.ceil(screenWidth / TILE_SIZE);
+        const viewportHeightTiles = Math.ceil(screenHeight / TILE_SIZE);
+        const totalGridWidth = (viewportWidthTiles + 20) * TILE_SIZE;
+        const totalGridHeight = (viewportHeightTiles + 20) * TILE_SIZE;
+        
+        const minScaleX = screenWidth / totalGridWidth;
+        const minScaleY = screenHeight / totalGridHeight;
+        const minScale = Math.max(minScaleX, minScaleY); // Use larger value to ensure grid fits
         const maxScale = 1.0; // Maximum zoom in (loaded page scale) as requested
 
         const newScale = Math.max(minScale, Math.min(maxScale, scale * (distance / lastTouch.scale)));
@@ -207,8 +217,8 @@ export const GridPuzzleMobile = () => {
         const potentialX = translateX + deltaX;
         const potentialY = translateY + deltaY;
 
-        // Apply boundary constraints
-        const boundaries = getPanBoundaries();
+        // Apply boundary constraints with current scale
+        const boundaries = getPanBoundaries(scale);
         const boundedX = Math.max(boundaries.minX, Math.min(boundaries.maxX, potentialX));
         const boundedY = Math.max(boundaries.minY, Math.min(boundaries.maxY, potentialY));
 
@@ -220,8 +230,8 @@ export const GridPuzzleMobile = () => {
     }
   };
 
-  // Calculate pan boundaries based on background grid size
-  const getPanBoundaries = () => {
+  // Calculate pan boundaries based on background grid size and current scale
+  const getPanBoundaries = (currentScale: number = scale) => {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     
@@ -231,16 +241,16 @@ export const GridPuzzleMobile = () => {
     const gridWidth = viewportWidthTiles + 20; // +20 for 10 tiles buffer each side
     const gridHeight = viewportHeightTiles + 20;
     
-    // Total grid size in pixels
-    const totalGridWidth = gridWidth * TILE_SIZE;
-    const totalGridHeight = gridHeight * TILE_SIZE;
+    // Total grid size in pixels at current scale
+    const totalGridWidth = gridWidth * TILE_SIZE * currentScale;
+    const totalGridHeight = gridHeight * TILE_SIZE * currentScale;
     
-    // Tiles positioned from (0,0) to (totalGridWidth, totalGridHeight)
-    // Pan boundaries allow viewing entire grid area
-    const minX = -(totalGridWidth - screenWidth); // Can pan to see rightmost tiles
-    const maxX = 0; // Can pan to see leftmost tiles  
-    const minY = -(totalGridHeight - screenHeight); // Can pan to see bottom tiles
-    const maxY = 0; // Can pan to see top tiles
+    // Calculate pan boundaries to prevent white space
+    // When grid is smaller than viewport, center it
+    const minX = totalGridWidth <= screenWidth ? (screenWidth - totalGridWidth) / 2 : -(totalGridWidth - screenWidth);
+    const maxX = totalGridWidth <= screenWidth ? (screenWidth - totalGridWidth) / 2 : 0;
+    const minY = totalGridHeight <= screenHeight ? (screenHeight - totalGridHeight) / 2 : -(totalGridHeight - screenHeight);
+    const maxY = totalGridHeight <= screenHeight ? (screenHeight - totalGridHeight) / 2 : 0;
     
     return { minX, maxX, minY, maxY };
   };
